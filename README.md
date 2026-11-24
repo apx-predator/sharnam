@@ -1,13 +1,41 @@
-# Sharnam Network Automation Tool
+Sharnam Network Automation Tool
+A Model-Driven Network Automation Platform (YANG / NETCONF / FastAPI / PHP)
 
-A full-stack networking automation demo built to provision and manage network devices. 
+Sharnam is a full-stack network orchestration and provisioning demo designed to showcase modern network automation principles. Instead of relying on legacy CLI screen-scraping, it uses YANG data models over NETCONF to manage network devices programmatically, ensuring transactional integrity and structured configuration.
 
-## Architecture
-- **Frontend:** HTML/CSS/JS
-- **Middleware / Web Server:** PHP (XAMPP)
-- **Backend API:** Python (FastAPI)
-- **Database:** MySQL
-- **Networking:** Python (Nornir / Scrapli / Netmiko via NETCONF/SSH)
+🚀 Core Features
+Model-Driven Programmability: Utilizes Cisco IOS-XE YANG models to push configurations (VLANs, Interfaces, BGP, Port-Channels, etc.) via NETCONF.
+
+Two-Phase Commit (Confirmed-Commit): Implements a safety-net mechanism using <commit><confirmed/>. If a configuration change causes a lockout or failure, it automatically rolls back unless explicitly confirmed, ensuring zero network downtime.
+
+Drift Detection & Validation: Compares intended state (from the database) against operational state (pulled via NETCONF) to identify configuration drift.
+
+Full-Stack Architecture: A custom web dashboard built on XAMPP (PHP/HTML/JS) communicates with a highly concurrent Python FastAPI backend via REST APIs.
+
+🏗️ Architecture
+Frontend (UI): HTML/CSS/JS dashboard to select devices and push configurations.
+
+Middleware (PHP): Acts as the web controller, translating UI actions into REST API calls.
+
+Backend API (FastAPI): Receives requests, queries the MySQL inventory, and orchestrates network changes.
+
+Network Engine (Nornir & Scrapli): Uses Python threading to concurrently connect to multiple devices via NETCONF (Port 830) and push YANG-formatted XML payloads.
+
+Database (MySQL): Stores device inventory, site details, interface records, and configuration histories.
+
+🛠️ Technologies Used
+Network Automation: Nornir, Scrapli, NETCONF, YANG (Cisco-IOS-XE models).
+
+Backend: Python 3, FastAPI, Uvicorn, Pydantic.
+
+Frontend/Web: PHP, HTML5, CSS3, JavaScript (AJAX/Fetch).
+
+Database: MySQL (via XAMPP).
+
+Security: Confirmed-commit rollback safety, strict capability checking.
+
+💡 Why YANG & NETCONF?
+Traditional CLI automation (using Netmiko/Paramiko) is prone to errors when device prompts change or when output formats vary between IOS versions. By using YANG, the tool sends structured XML data that the device natively understands. This guarantees that configurations are idempotent, transactional, and can be programmatically validated before they are committed to the running datastore.
 
 ## How it works
 1. The user interacts with the HTML frontend.
