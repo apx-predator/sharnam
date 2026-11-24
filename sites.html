@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM sites</title>
+    <style>
+        /* Global reset to prevent weird layout shifts */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* Forces the main container to fill the remaining vertical height */
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .sites-available {
+            flex: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-sites {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        /* Styling for the form elements to make them look like a clean panel */
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: sites</h1>
+    </header>
+
+    <main>
+        <section class="sites-available">
+            <h2>Available Sites</h2>
+            <ul id="classes" class="sites">
+                <!-- PHP script or JavaScript will insert rows here -->
+            </ul>
+        </section>
+
+        <aside class="add-sites">
+            <h2>Add Site</h2>
+            <form class="form" id="site-form" action="" method="post">
+                <p>
+                    <label for="site-name">Site Name</label>
+                    <input type="text" id="site-name" name="site" placeholder="Nairobi-hq" required>
+                </p>
+                <button type="submit">Add Site</button>
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        /* ============================================================
+           SUBMITTING SITE TO BACKEND
+           ============================================================ */
+        const siteForm = document.getElementById("site-form");
+
+        siteForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById("site-name").value.trim();
+
+            try {
+                const response = await fetch("api.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ site_name: name })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Network pipeline failure!!");
+                }
+
+                const result = await response.json();
+
+                if (result.status === "error") {
+                    throw new Error(
+                        "Error occurred while trying to append the site: " + result.message
+                    );
+                }
+
+                alert("Site added successfully!! ✔✔🎉");
+                siteForm.reset();
+                loadsites(); // Proactively reload the view instantly
+
+            } catch (error) {
+                alert(
+                    "Error occurred while trying to communicate to the backend: " +
+                    error.message
+                );
+            }
+        });
+
+        /* ============================================================
+           LIVE SITES FETCHING FROM DATABASE
+           ============================================================ */
+        const sitesContainer = document.getElementById("classes");
+
+        async function loadsites() {
+            try {
+                const resp = await fetch("api.php");
+
+                if (!resp.ok) {
+                    throw new Error("Error while attempting to talk to the backend.!!!");
+                }
+
+                const data = await resp.json();
+
+                if (data.status === "error") {
+                    throw new Error("Error when reading the database: " + data.message);
+                }
+
+                sitesContainer.innerHTML = ""; // Clear existing nodes
+
+                // Loop through the data payload array returned by PHP
+                data.sites.forEach(function (siteItem) {
+                    const li = document.createElement("li");
+                    li.className = "sites-list";
+                    li.style.listStyle = "none";
+                    li.style.marginBottom = "15px";
+                    li.style.padding = "10px";
+                    li.style.backgroundColor = "rgba(255,255,255,0.05)";
+                    li.style.borderRadius = "5px";
+
+                    li.innerHTML = `
+                        <div style="margin-bottom: 8px;">
+                            <strong>site_id:</strong>
+                            <span class="txt-host">${siteItem.site_id}</span><br>
+                            <strong>site_name:</strong>
+                            <span class="txt-ip">${siteItem.site_name}</span><br>
+                        </div>
+                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <button class="btn-delete"
+                                    style="background: #e74c3c; color: white; padding: 4px 10px;
+                                           font-size: 12px; width: auto; margin: 0; border: none;
+                                           border-radius: 3px; cursor: pointer;">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+
+                    sitesContainer.appendChild(li);
+
+                    // Hook up delete listener for this specific item block
+                    const delbtn = li.querySelector(".btn-delete");
+
+                    delbtn.addEventListener("click", async function () {
+                        if (!confirm(`Are you sure you want to remove site ${siteItem.site_name}?`)) {
+                            return;
+                        }
+
+                        try {
+                            const del = await fetch("api.php", {
+                                method: "DELETE",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ id: siteItem.site_id })
+                            });
+
+                            if (!del.ok) {
+                                throw new Error("Network pipeline failure occurred!!");
+                            }
+
+                            const delResult = await del.json();
+
+                            if (delResult.status === "error") {
+                                throw new Error(
+                                    "Error occurred while trying to delete the site!!"
+                                );
+                            }
+
+                            loadsites(); // Reload view data tier instantly
+
+                        } catch (err) {
+                            alert("Deletion error occurred!!: " + err.message);
+                        }
+                    });
+                });
+
+            } catch (err1) {
+                alert("Fetch operational error: " + err1.message);
+            }
+        }
+
+        // Initial fire and continuous sync loop
+        loadsites();
+        setInterval(loadsites, 10000);
+    </script>
+</body>
+</html>

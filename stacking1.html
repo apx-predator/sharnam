@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Stacking</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        .slogan {
+              text-align: center;
+              font-size: 0.78rem;
+              letter-spacing: 0.32em;
+              color: rgba(0, 229, 255, 0.75);
+              margin: -4px 0 8px 0;
+               font-weight: bold;
+              user-select: none;
+              pointer-events: none;
+              overflow: hidden;
+              white-space: nowrap;
+              animation: sloganGlow 4s ease-in-out infinite;
+         }
+
+         @keyframes sloganGlow {
+           0%, 100% {
+              opacity: 0.65;
+              text-shadow: 0 0 4px rgba(0,229,255,0.35);
+           }
+           50% {
+                opacity: 1;
+                text-shadow: 0 0 10px rgba(0,229,255,0.75),
+                             0 0 18px rgba(0,229,255,0.35);
+           }
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .stack-available {
+            flex: 1;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-stack-panel {
+            flex: 1;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+        }
+
+        fieldset {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"],
+        fieldset input[type="checkbox"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        input:focus, select:focus { border: 2px solid #00e5ff; }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover:not(:disabled) { background-color: #ffffff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status-line {
+            font-size: 0.85rem;
+            color: #00e5ff;
+            margin-top: 8px;
+            min-height: 1.2em;
+        }
+
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            padding: 20px;
+            font-size: 1rem;
+            background: rgba(0,229,255,0.15);
+            border: 2px solid #00e5ff;
+            color: #00e5ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .mode-btn:hover { background: #00e5ff; color: #003366; }
+        .mode-btn small {
+            display: block;
+            color: #a0d8ff;
+            margin-top: 4px;
+            font-weight: normal;
+            font-size: 0.8rem;
+        }
+        .mode-btn:hover small { color: #003366; }
+
+        .mode-btn.danger {
+            border-color: #e74c3c;
+            color: #ff8888;
+            background: rgba(231,76,60,0.1);
+        }
+        .mode-btn.danger:hover { background: #e74c3c; color: white; }
+        .mode-btn.danger small { color: #ffaaaa; }
+        .mode-btn.danger:hover small { color: white; }
+
+        .iface-block {
+            padding-left: 20px;
+            margin-top: 6px;
+        }
+
+        .iface-block label {
+            font-weight: normal;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .member-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .stack-card {
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            list-style: none;
+        }
+
+        .stack-card hr {
+            margin: 8px 0;
+            border: 0;
+            border-top: 1px dashed rgba(255,255,255,0.2);
+        }
+
+        .stack-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+
+        .badge-master { background: #27ae60; color: white; }
+        .badge-standby { background: #f39c12; color: #333; }
+        .badge-member { background: #3498db; color: white; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Stacking</h1>
+    </header>
+
+    <div class="slogan" aria-hidden="true">
+        Sharnam&nbsp;—&nbsp;Automation&nbsp;you&nbsp;can&nbsp;trust,&nbsp;Year&nbsp;after&nbsp;Year👾👾
+    </div>
+
+    <main>
+        <section class="stack-available">
+            <h2>Stacked Devices</h2>
+            <ul id="stacks" class="stacks"></ul>
+        </section>
+
+        <aside class="add-stack-panel">
+            <h2>Stacking Operations</h2>
+
+            <form id="stack-form" method="post" action="">
+
+                <!-- ============ STEP 1: MODE PICKER ============ -->
+                <div id="modePicker">
+                    <p style="margin-bottom:12px; font-weight:bold;">
+                        Choose the stacking mode:
+                    </p>
+                    <div class="mode-buttons">
+                        <button type="button" class="mode-btn" data-mode="front-panel">
+                            Front-Panel Stacking
+                            <small>Pick exactly 2 devices and their front-panel stack ports</small>
+                        </button>
+                        <button type="button" class="mode-btn" data-mode="back-panel">
+                            Back-Panel Stacking
+                            <small>Pick the master device; define members by SKU and switch number</small>
+                        </button>
+                        <button type="button" class="mode-btn danger" data-mode="dad">
+                            Configure DAD
+                            <small>Dual-Active Detection on already-formed stacks</small>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ============ STEP 2: DEVICE PICKER (front/back) ============ -->
+                <div id="devicePicker" style="display:none">
+                    <fieldset>
+                        <legend>Profile &amp; Device Filter</legend>
+                        <label>Profile (cred_id):
+                            <input type="text" id="cred_id" placeholder="e.g. 3" required>
+                        </label>
+                        <label>Site No:
+                            <input type="text" id="site" placeholder="e.g. site_001" required>
+                        </label>
+                        <label>Device Type:
+                            <input type="text" id="device_type" placeholder="e.g. switch" required>
+                        </label>
+                        <label>Platform:
+                            <input type="text" id="platform" placeholder="e.g. CISCO-IOS-XE">
+                        </label>
+                        <label>Hostname:
+                            <input type="text" id="hostname" placeholder="e.g. NRB-SW-001">
+                        </label>
+                    </fieldset>
+
+                    <button type="button" id="loadDevicesBtn">Load Devices</button>
+
+                    <div id="devicesBox"></div>
+
+                    <button type="button" id="proceedBtn" disabled>Proceed &rarr;</button>
+                    <button type="button" id="backToModeFromPicker"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Mode
+                    </button>
+                </div>
+
+                <!-- ============ STEP 2b: DAD DEVICE PICKER (api9) ============ -->
+                <div id="dadPicker" style="display:none">
+                    <fieldset>
+                        <legend>Filter Formed Stacks</legend>
+                        <label>Profile (cred_id):
+                            <input type="text" id="dad_cred_id" placeholder="e.g. 3" required>
+                        </label>
+                        <label>Site No:
+                            <input type="text" id="dad_site" placeholder="e.g. site_001" required>
+                        </label>
+                        <label>Device Type:
+                            <input type="text" id="dad_device_type" placeholder="e.g. switch" required>
+                        </label>
+                        <label>Platform:
+                            <input type="text" id="dad_platform" placeholder="e.g. CISCO-IOS-XE">
+                        </label>
+                        <label>Hostname:
+                            <input type="text" id="dad_hostname" placeholder="optional">
+                        </label>
+                    </fieldset>
+
+                    <button type="button" id="loadDadDevicesBtn">Load Formed Stacks</button>
+
+                    <div id="dadDevicesBox"></div>
+
+                    <button type="button" id="dadProceedBtn" disabled>Proceed &rarr;</button>
+                    <button type="button" id="backToModeFromDad"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Mode
+                    </button>
+                </div>
+
+                <!-- ============ STEP 3a: FRONT-PANEL CONFIG ============ -->
+                <div id="formFrontPanel" style="display:none">
+                    <fieldset>
+                        <legend>Front-Panel Stack</legend>
+                        <p style="font-size:0.85rem; color:#a0d8ff; margin-bottom:10px;">
+                            Exactly <strong>2</strong> devices selected. Fill in the master details below.
+                        </p>
+                        <label>Master Device ID:
+                            <input type="text" id="fp_master_id" placeholder="e.g. dev_0001" readonly>
+                        </label>
+                        <label>Virtual Domain ID (1-255):
+                            <input type="number" id="fp_domain" min="1" max="255" placeholder="e.g. 1">
+                        </label>
+                        <label>Master Chassis Priority (1-15, default 1):
+                            <input type="number" id="fp_priority" min="1" max="15" value="1">
+                        </label>
+                    </fieldset>
+
+                    <button type="button" id="saveFrontPanelBtn">Configure Front-Panel Stack</button>
+                    <button type="button" id="backToPickerFromFp"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Picker
+                    </button>
+                    <div id="statusFrontPanel" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3b: BACK-PANEL CONFIG ============ -->
+                <div id="formBackPanel" style="display:none">
+                    <fieldset>
+                        <legend>Back-Panel Stack</legend>
+                        <label>Master Device ID:
+                            <input type="text" id="bp_master_id" placeholder="e.g. dev_0001" readonly>
+                        </label>
+                        <label>Master Priority (1-15, default 1):
+                            <input type="number" id="bp_priority" min="1" max="15" value="1">
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Stack Members (1–8)</legend>
+                        <div id="memberRows"></div>
+                        <button type="button" id="addMemberBtn"
+                                style="margin-top:10px; background:#27ae60; color:white;">
+                            + Add Member
+                        </button>
+                    </fieldset>
+
+                    <button type="button" id="saveBackPanelBtn">Configure Back-Panel Stack</button>
+                    <button type="button" id="backToPickerFromBp"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Picker
+                    </button>
+                    <div id="statusBackPanel" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3c: DAD CONFIG ============ -->
+                <div id="formDad" style="display:none">
+                    <fieldset>
+                        <legend>Dual-Active Detection</legend>
+                        <p style="font-size:0.85rem; color:#a0d8ff; margin-bottom:10px;">
+                            Two devices (master + standby) selected. Pick one port per device below.
+                        </p>
+                        <div id="dadPortRows"></div>
+                    </fieldset>
+
+                    <button type="button" id="saveDadBtn">Configure DAD on Selected Devices</button>
+                    <button type="button" id="backToDadFromForm"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Picker
+                    </button>
+                    <div id="statusDad" class="status-line"></div>
+                </div>
+
+            </form>
+        </aside>
+    </main>
+<script>
+/* ============================================================
+   SHARED STATE
+   ============================================================ */
+let mode = null;                       // 'front-panel' | 'back-panel' | 'dad'
+let devices = [];
+const chosenDevices = new Set();
+const chosenInterfaces = [];           // [{ device_id, int_id, int_name }]
+let dadStacks = [];                    // CHANGED: api8 returns formed stacks, each with devices[]
+const dadChosen = new Map();           // device_id -> { int_id, int_name }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function hide(id) { document.getElementById(id).style.display = 'none'; }
+function show(id) { document.getElementById(id).style.display = 'block'; }
+
+function resetAll() {
+    mode = null;
+    devices = [];
+    dadStacks = [];
+    chosenDevices.clear();
+    chosenInterfaces.length = 0;
+    dadChosen.clear();
+
+    ['devicePicker', 'dadPicker', 'formFrontPanel', 'formBackPanel', 'formDad']
+        .forEach(hide);
+    show('modePicker');
+
+    document.getElementById('devicesBox').innerHTML = '';
+    document.getElementById('dadDevicesBox').innerHTML = '';
+    document.getElementById('memberRows').innerHTML = '';
+    document.getElementById('dadPortRows').innerHTML = '';
+
+    ['statusFrontPanel', 'statusBackPanel', 'statusDad'].forEach(id => {
+        document.getElementById(id).textContent = '';
+    });
+
+    document.getElementById('proceedBtn').disabled = true;
+    document.getElementById('dadProceedBtn').disabled = true;
+}
+
+/* ============================================================
+   POLL helper — api9.php polls jobs (?job=<id>)
+   ============================================================ */
+async function pollJobUntilDone(jobId, statusEl) {
+    const started = Date.now();
+    const POLL_MS = 5000;
+    const MAX_MS  = 30 * 60 * 1000;
+
+    while (Date.now() - started < MAX_MS) {
+        await new Promise(r => setTimeout(r, POLL_MS));
+
+        let poll;
+        try {
+            const pr = await fetch('api9.php?job=' + encodeURIComponent(jobId));
+            poll = await pr.json();
+        } catch (err) {
+            if (statusEl) statusEl.textContent = 'Poll network error, retrying…';
+            continue;
+        }
+        console.log('[poll]', poll);
+
+        if (poll.status === 'pending') {
+            if (statusEl) {
+                statusEl.textContent = 'Still configuring… (' +
+                    Math.round((Date.now() - started) / 1000) + 's)';
+            }
+            continue;
+        }
+        if (poll.status === 'error') {
+            return { ok: false, message: poll.message || 'job failed' };
+        }
+        if (poll.status === 'success') {
+            return { ok: true };
+        }
+    }
+    return { ok: false, message: 'timed out waiting for job ' + jobId };
+}
+
+async function submitAndPoll(endpoint, payload, btn, statusEl, idleLabel, successMsg) {
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+    statusEl.textContent = 'Sending to backend…';
+
+    try {
+        const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log('[POST]', data);
+
+        if (data.status === 'error') {
+            statusEl.textContent = 'Rejected.';
+            alert('Rejected:\n' + (data.errors ? data.errors.join('\n') : data.message));
+            return;
+        }
+
+        if (data.status === 'accepted' && data.job_id) {
+            const jobId = data.job_id;
+            statusEl.textContent = 'Waiting for devices… (job ' + jobId + ')';
+            btn.textContent = 'Waiting…';
+
+            const result = await pollJobUntilDone(jobId, statusEl);
+            if (!result.ok) {
+                statusEl.textContent = 'Failed.';
+                alert('Configuration failed: ' + result.message);
+                return;
+            }
+            statusEl.textContent = 'Done.';
+            alert(successMsg);
+            resetAll();
+            loadStacks();
+            return;
+        }
+
+        if (data.status === 'success') {
+            statusEl.textContent = 'Done.';
+            alert(successMsg);
+            resetAll();
+            loadStacks();
+            return;
+        }
+
+        alert('Unexpected response: ' + JSON.stringify(data));
+    } catch (err) {
+        statusEl.textContent = 'Error.';
+        alert('Error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = idleLabel;
+    }
+}
+
+/* ============================================================
+   1. MODE PICKER
+   ============================================================ */
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        mode = btn.dataset.mode;
+        hide('modePicker');
+
+        if (mode === 'dad') {
+            show('dadPicker');
+        } else {
+            show('devicePicker');
+        }
+    });
+});
+
+/* ============================================================
+   2. LOAD DEVICES (front/back) — api3  (unchanged)
+   ============================================================ */
+document.getElementById('loadDevicesBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const site     = document.getElementById('site').value.trim();
+    const type     = document.getElementById('device_type').value.trim();
+    const platform = document.getElementById('platform').value.trim();
+    const hostname = document.getElementById('hostname').value.trim();
+
+    if (!site || !type) { alert('Site No and Device Type are required'); return; }
+
+    const qs = new URLSearchParams({ site, type, platform, hostname }).toString();
+
+    let data;
+    try {
+        const res = await fetch('api3.php?' + qs, { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        data = await res.json();
+    } catch (err) {
+        alert('Failed to load devices: ' + err.message);
+        return;
+    }
+
+    if (data.status === 'error') { alert(data.message); return; }
+    if (data.status !== 'success') { alert('Unexpected response'); return; }
+
+    devices = data.message || [];
+    chosenDevices.clear();
+    chosenInterfaces.length = 0;
+
+    renderDevicesBox(devices, mode);
+    document.getElementById('proceedBtn').disabled = devices.length === 0;
+});
+
+function renderDevicesBox(list, m) {
+    const box = document.getElementById('devicesBox');
+    box.innerHTML = '';
+
+    if (list.length === 0) {
+        box.innerHTML = '<em>No matching devices</em>';
+        return;
+    }
+
+    const showInterfaces = (m === 'front-panel');
+
+    list.forEach(d => {
+        const wrap = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.innerHTML =
+            `<strong>Device ID:</strong> <span>${d.id}</span><br>
+             <label><input type="checkbox" class="dev-chk" data-dev="${d.id}"> ${d.name} (${d.type || ''})</label>`;
+        wrap.appendChild(legend);
+
+        if (showInterfaces) {
+            const ifaceWrap = document.createElement('div');
+            ifaceWrap.className = 'iface-block';
+            if (Array.isArray(d.interfaces) && d.interfaces.length > 0) {
+                d.interfaces.forEach(iface => {
+                    const lbl = document.createElement('label');
+                    lbl.innerHTML =
+                        `<input type="checkbox" class="if-chk"
+                                data-dev="${d.id}"
+                                data-int="${iface.int_id ?? iface.id ?? ''}"
+                                data-name="${iface.int_name ?? iface.name ?? ''}">
+                         ${iface.int_name ?? iface.name ?? 'interface'}`;
+                    ifaceWrap.appendChild(lbl);
+                });
+            } else {
+                ifaceWrap.innerHTML = '<em style="font-size:0.85rem;">No interfaces listed</em>';
+            }
+            wrap.appendChild(ifaceWrap);
+        }
+
+        box.appendChild(wrap);
+    });
+}
+
+/* ============================================================
+   3. DEVICE / INTERFACE CHECKBOX TRACKING  (unchanged)
+   ============================================================ */
+document.getElementById('devicesBox').addEventListener('change', e => {
+    const t = e.target;
+
+    if (t.classList.contains('dev-chk')) {
+        const devId = t.dataset.dev;
+
+        if (t.checked) {
+            if (mode === 'front-panel' && chosenDevices.size >= 2) {
+                t.checked = false;
+                alert('Front-Panel stacking requires exactly 2 devices.');
+                return;
+            }
+            if (mode === 'back-panel' && chosenDevices.size >= 1) {
+                t.checked = false;
+                alert('Back-Panel stacking requires exactly 1 master device.');
+                return;
+            }
+            chosenDevices.add(devId);
+        } else {
+            chosenDevices.delete(devId);
+        }
+
+        document.querySelectorAll(`.if-chk[data-dev="${devId}"]`).forEach(chk => {
+            chk.checked = t.checked;
+            syncInterfaceChoice(chk);
+        });
+
+    } else if (t.classList.contains('if-chk')) {
+        syncInterfaceChoice(t);
+        const devId = t.dataset.dev;
+        const anyChecked = document.querySelector(`.if-chk[data-dev="${devId}"]:checked`);
+        const devChk = document.querySelector(`.dev-chk[data-dev="${devId}"]`);
+        if (devChk) {
+            devChk.checked = !!anyChecked;
+            if (devChk.checked) chosenDevices.add(devId);
+            else                chosenDevices.delete(devId);
+        }
+    }
+});
+
+function syncInterfaceChoice(chk) {
+    const devId   = chk.dataset.dev;
+    const intId   = chk.dataset.int;
+    const intName = chk.dataset.name;
+
+    const idx = chosenInterfaces.findIndex(
+        x => String(x.device_id) === String(devId) && String(x.int_id) === String(intId)
+    );
+    if (idx >= 0) chosenInterfaces.splice(idx, 1);
+
+    if (chk.checked && intId) {
+        chosenInterfaces.push({ device_id: devId, int_id: intId, int_name: intName });
+    }
+}
+
+/* ============================================================
+   4. PROCEED (front/back) → config form  (unchanged logic)
+   ============================================================ */
+document.getElementById('proceedBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    if (mode === 'front-panel') {
+        if (chosenDevices.size !== 2) {
+            alert('Front-Panel stacking requires exactly 2 devices.');
+            return;
+        }
+        // api9 requires exactly 2 ports per device
+        const byDev = new Map();
+        chosenInterfaces.forEach(ci => {
+            if (!byDev.has(ci.device_id)) byDev.set(ci.device_id, []);
+            byDev.get(ci.device_id).push(ci);
+        });
+        if (byDev.size !== 2 ||
+            [...byDev.values()].some(arr => arr.length !== 2)) {
+            alert('Pick exactly two stack ports per device (2 devices total).');
+            return;
+        }
+
+        const masterId = [...chosenDevices][0];
+        document.getElementById('fp_master_id').value = masterId;
+
+        hide('devicePicker');
+        show('formFrontPanel');
+        return;
+    }
+
+    if (mode === 'back-panel') {
+        if (chosenDevices.size !== 1) {
+            alert('Select exactly one master device for back-panel stacking.');
+            return;
+        }
+        const masterId = [...chosenDevices][0];
+        document.getElementById('bp_master_id').value = masterId;
+
+        if (document.getElementById('memberRows').children.length === 0) {
+            addMemberRow();
+        }
+
+        hide('devicePicker');
+        show('formBackPanel');
+    }
+});
+
+/* ============================================================
+   5. BACK BUTTONS  (unchanged)
+   ============================================================ */
+document.getElementById('backToModeFromPicker').addEventListener('click', () => {
+    hide('devicePicker'); show('modePicker'); mode = null;
+});
+document.getElementById('backToModeFromDad').addEventListener('click', () => {
+    hide('dadPicker'); show('modePicker'); mode = null;
+});
+document.getElementById('backToPickerFromFp').addEventListener('click', () => {
+    hide('formFrontPanel'); show('devicePicker');
+});
+document.getElementById('backToPickerFromBp').addEventListener('click', () => {
+    hide('formBackPanel'); show('devicePicker');
+});
+document.getElementById('backToDadFromForm').addEventListener('click', () => {
+    hide('formDad'); show('dadPicker');
+});
+
+/* ============================================================
+   6. BACK-PANEL MEMBER ROWS (1–8)  (unchanged)
+   ============================================================ */
+function addMemberRow() {
+    const container = document.getElementById('memberRows');
+    if (container.children.length >= 8) {
+        alert('Maximum 8 stack members.');
+        return;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    row.innerHTML = `
+        <input type="text" class="m-sku" placeholder="SKU designation (e.g. C9300-48P)"
+               style="flex:2; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <input type="number" class="m-switch" placeholder="switch #" min="1" max="8"
+               style="flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <button type="button" class="remove-member-btn"
+                style="background:#e74c3c; color:white; width:auto; padding:8px 12px;
+                       border-radius:5px; border:none; cursor:pointer;">✕</button>
+    `;
+    row.querySelector('.remove-member-btn').addEventListener('click', () => row.remove());
+    container.appendChild(row);
+}
+document.getElementById('addMemberBtn').addEventListener('click', () => addMemberRow());
+
+/* ============================================================
+   7. FRONT-PANEL SAVE → api9  (unchanged)
+   ============================================================ */
+document.getElementById('saveFrontPanelBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('statusFrontPanel');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const masterId = document.getElementById('fp_master_id').value.trim();
+    const domain   = document.getElementById('fp_domain').value.trim();
+    const priority = document.getElementById('fp_priority').value.trim();
+
+    if (!domain || isNaN(domain) || domain < 1 || domain > 255) {
+        alert('Virtual Domain ID must be 1-255'); return;
+    }
+    if (!priority || isNaN(priority) || priority < 1 || priority > 15) {
+        alert('Priority must be 1-15'); return;
+    }
+
+    const byDev = new Map();
+    chosenInterfaces.forEach(ci => {
+        if (!byDev.has(ci.device_id)) byDev.set(ci.device_id, []);
+        byDev.get(ci.device_id).push({ int_id: Number(ci.int_id), int_name: ci.int_name });
+    });
+
+    const stackDevices = [...chosenDevices].map(id => ({ id, ports: byDev.get(id) || [] }));
+
+    const payload = {
+        cred_id: Number(credId),
+        operation: 'front-panel',
+        devices: stackDevices,
+        details: {
+            master_device_id: masterId,
+            virtual_domain_id: Number(domain),
+            master_chassis_priority: Number(priority)
+        }
+    };
+
+    await submitAndPoll('api9.php', payload, e.target, statusEl,
+        'Configure Front-Panel Stack', 'Front-Panel stack configured ✔');
+});
+
+/* ============================================================
+   8. BACK-PANEL SAVE → api9  (unchanged)
+   ============================================================ */
+document.getElementById('saveBackPanelBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('statusBackPanel');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const masterId = document.getElementById('bp_master_id').value.trim();
+    const priority = document.getElementById('bp_priority').value.trim();
+
+    if (!priority || isNaN(priority) || priority < 1 || priority > 15) {
+        alert('Master Priority must be 1-15'); return;
+    }
+
+    const members = [];
+    let bad = false;
+    document.querySelectorAll('#memberRows .member-row').forEach(row => {
+        const sku   = row.querySelector('.m-sku').value.trim();
+        const swNum = row.querySelector('.m-switch').value.trim();
+        if (!sku && !swNum) return;
+        if (!sku || !swNum) { bad = true; return; }
+        const n = parseInt(swNum, 10);
+        if (isNaN(n) || n < 1 || n > 8) { bad = true; return; }
+        members.push({ sku_designation: sku, switch_number: n });
+    });
+
+    if (bad) { alert('Each member needs SKU and switch number (1-8).'); return; }
+    if (members.length < 1) { alert('Add at least one stack member.'); return; }
+    if (members.length > 8) { alert('Maximum 8 stack members.'); return; }
+
+    const payload = {
+        cred_id: Number(credId),
+        operation: 'back-panel',
+        devices: [{ id: masterId }],
+        details: {
+            master_device_id: masterId,
+            master_priority: Number(priority),
+            members
+        }
+    };
+
+    await submitAndPoll('api9.php', payload, e.target, statusEl,
+        'Configure Back-Panel Stack', 'Back-Panel stack configured ✔');
+});
+
+/* ============================================================
+   9. DAD — LOAD FORMED STACKS  ← CHANGED: api8, shape {stacks:[...]}
+   ============================================================ */
+document.getElementById('loadDadDevicesBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const site     = document.getElementById('dad_site').value.trim();
+    const type     = document.getElementById('dad_device_type').value.trim();
+    const platform = document.getElementById('dad_platform').value.trim();
+    const hostname = document.getElementById('dad_hostname').value.trim();
+
+    if (!site || !type) { alert('Site No and Device Type are required'); return; }
+
+    const qs = new URLSearchParams({ site, type, platform, hostname }).toString();
+
+    let data;
+    try {
+        const res = await fetch('api8.php?' + qs, { method: 'GET' });   // CHANGED
+        if (!res.ok) throw new Error('Backend error');
+        data = await res.json();
+    } catch (err) {
+        alert('Failed to load formed stacks: ' + err.message);
+        return;
+    }
+
+    if (data.status === 'error') { alert(data.message); return; }
+    if (data.status !== 'success') { alert('Unexpected response: ' + JSON.stringify(data)); return; }
+
+    // CHANGED: accept api8's stack shape. Expected per stack:
+    // { stack_no, stack_type, master_id, std_id, hostname,
+    //   devices: [{ device_id, role, port_ids, interfaces?:[{int_id,int_name}] }] }
+    dadStacks = data.stacks || data.message || [];
+    dadChosen.clear();
+
+    const box = document.getElementById('dadDevicesBox');
+    box.innerHTML = '';
+
+    if (dadStacks.length === 0) {
+        box.innerHTML = '<em>No formed stacks match the filter</em>';
+        document.getElementById('dadProceedBtn').disabled = true;
+        return;
+    }
+
+    dadStacks.forEach(st => {
+        const wrap = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.innerHTML =
+            `<strong>Stack #${st.stack_no}</strong>
+             <span class="stack-badge badge-${st.stack_type === 'dad' ? 'standby' : 'master'}">${st.stack_type || 'stack'}</span><br>
+             <span style="font-size:0.82rem;color:#a0d8ff;">master: ${st.master_id} &nbsp;|&nbsp; std: ${st.std_id || '—'} &nbsp;|&nbsp; ${st.hostname || '—'}</span>`;
+        wrap.appendChild(legend);
+
+        (st.devices || []).forEach(dev => {
+            const devWrap = document.createElement('div');
+            devWrap.className = 'iface-block';
+
+            const devId = dev.device_id;
+            const role  = dev.role || 'member';
+
+            const devLbl = document.createElement('label');
+            devLbl.innerHTML =
+                `<input type="checkbox" class="dad-dev-chk" data-dev="${devId}" data-stack="${st.stack_no}">
+                 <strong>${devId}</strong>
+                 <span class="stack-badge badge-${role}">${role}</span>`;
+            devWrap.appendChild(devLbl);
+
+            const ports = Array.isArray(dev.interfaces) ? dev.interfaces : [];
+            if (ports.length === 0) {
+                const em = document.createElement('em');
+                em.style.fontSize = '0.85rem';
+                em.textContent = 'No interfaces listed';
+                devWrap.appendChild(em);
+            } else {
+                ports.forEach(iface => {
+                    const lbl = document.createElement('label');
+                    lbl.innerHTML =
+                        `<input type="checkbox" class="dad-if-chk"
+                                data-dev="${devId}"
+                                data-int="${iface.int_id ?? iface.id ?? ''}"
+                                data-name="${iface.int_name ?? iface.name ?? ''}">
+                         ${iface.int_name ?? iface.name ?? 'interface'}`;
+                    devWrap.appendChild(lbl);
+                });
+            }
+            wrap.appendChild(devWrap);
+        });
+
+        box.appendChild(wrap);
+    });
+
+    document.getElementById('dadProceedBtn').disabled = false;
+});
+
+/* ============================================================
+   10. DAD CHECKBOX TRACKING — exactly 2 devices, 1 port each
+   ============================================================ */
+document.getElementById('dadDevicesBox').addEventListener('change', e => {
+    const t = e.target;
+
+    if (t.classList.contains('dad-dev-chk')) {
+        const devId = t.dataset.dev;
+        if (t.checked) {
+            if (dadChosen.size >= 2) {
+                t.checked = false;
+                alert('DAD requires exactly 2 devices (master + standby).');
+                return;
+            }
+            dadChosen.set(devId, null);
+        } else {
+            dadChosen.delete(devId);
+        }
+
+        document.querySelectorAll(`.dad-if-chk[data-dev="${devId}"]`).forEach(chk => {
+            chk.checked = t.checked;
+        });
+        if (!t.checked) dadChosen.set(devId, null);
+
+    } else if (t.classList.contains('dad-if-chk')) {
+        const devId  = t.dataset.dev;
+        const intId  = t.dataset.int;
+        const intName = t.dataset.name;
+
+        if (t.checked) {
+            document.querySelectorAll(`.dad-if-chk[data-dev="${devId}"]`).forEach(chk => {
+                if (chk !== t) chk.checked = false;
+            });
+            dadChosen.set(devId, { int_id: Number(intId), int_name: intName });
+        } else {
+            const cur = dadChosen.get(devId);
+            if (cur && cur.int_id === Number(intId)) dadChosen.set(devId, null);
+        }
+
+        const devChk = document.querySelector(`.dad-dev-chk[data-dev="${devId}"]`);
+        if (devChk) devChk.checked = !!dadChosen.get(devId);
+    }
+});
+
+/* ============================================================
+   11. DAD PROCEED → build port rows
+   ============================================================ */
+document.getElementById('dadProceedBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    if (dadChosen.size !== 2) { alert('DAD requires exactly 2 devices.'); return; }
+    for (const [devId, port] of dadChosen.entries()) {
+        if (!port) { alert('Pick exactly one port on device ' + devId); return; }
+    }
+
+    const rowsBox = document.getElementById('dadPortRows');
+    rowsBox.innerHTML = '';
+    [...dadChosen.entries()].forEach(([devId, port], idx) => {
+        const row = document.createElement('div');
+        row.className = 'member-row';
+        row.innerHTML = `
+            <input type="text" value="${devId}" readonly
+                   style="flex:2; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+            <input type="text" value="${port.int_name}" readonly
+                   style="flex:2; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+            <span class="stack-badge ${idx === 0 ? 'badge-master' : 'badge-standby'}">
+                ${idx === 0 ? 'master' : 'standby'}
+            </span>`;
+        rowsBox.appendChild(row);
+    });
+
+    hide('dadPicker');
+    show('formDad');
+});
+
+/* ============================================================
+   12. DAD SAVE → api9  (kept on api9: only api9 writes a dad job)
+   ============================================================ */
+document.getElementById('saveDadBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('statusDad');
+
+    const credId = document.getElementById('dad_cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const devicesArr = [...dadChosen.entries()].map(([devId, port]) => ({
+        id: devId,
+        ports: [{ int_id: port.int_id }]      // api9 only reads ports[].int_id
+    }));
+
+    const payload = {
+        cred_id: Number(credId),
+        operation: 'dad',
+        devices: devicesArr,
+        details: { state: true }
+    };
+
+    await submitAndPoll('api9.php', payload, e.target, statusEl,
+        'Configure DAD', 'DAD configured on selected devices ✔');
+});
+
+/* ============================================================
+   13. LEFT PANEL — list formed stacks  ← CHANGED: api9 {stacks:[...]}
+   ============================================================ */
+const stacksList = document.getElementById('stacks');
+
+async function loadStacks() {
+    try {
+        const res = await fetch('api9.php', { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        const data = await res.json();
+
+        if (data.status === 'error') throw new Error(data.message);
+
+        stacksList.innerHTML = '';
+
+        const stacks = data.stacks || [];               // CHANGED
+
+        if (stacks.length === 0) {
+            stacksList.innerHTML = '<li class="stack-card"><em>No stacks formed yet</em></li>';
+            return;
+        }
+
+        stacks.forEach(st => {
+            const li = document.createElement('li');
+            li.className = 'stack-card';
+
+            let html = `
+                <div style="margin-bottom:8px;">
+                    <strong>Stack #${st.stack_no}</strong>
+                    <span class="stack-badge badge-${st.stack_type === 'dad' ? 'standby' : 'master'}">${st.stack_type || '—'}</span><br>
+                    <strong>Hostname:</strong> <span>${st.hostname || '—'}</span><br>
+                    <strong>Master:</strong> <span>${st.master_id || '—'}</span><br>
+                    <strong>Standby:</strong> <span>${st.std_id || '—'}</span><br>
+                    <strong>Updated:</strong> <span>${st.updated_at || '—'}</span>
+            `;
+
+            (st.devices || []).forEach(dev => {
+                html += `
+                    <hr>
+                    <strong>Device:</strong> <span>${dev.device_id ?? dev.id}</span>
+                    <span class="stack-badge badge-${dev.role || 'member'}">${dev.role || 'member'}</span><br>
+                    <strong>Ports:</strong> <span>${dev.port_ids || '—'}</span>
+                `;
+            });
+
+            html += `</div>`;
+            li.innerHTML = html;
+            stacksList.appendChild(li);
+        });
+    } catch (err) {
+        console.error('Stack load error:', err.message);
+    }
+}
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+resetAll();
+loadStacks();
+setInterval(loadStacks, 15000);
+</script>
+
+</body>
+</html>

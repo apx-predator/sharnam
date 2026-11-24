@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Interface Features</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+        .slogan {
+            text-align: center;
+            font-size: 0.78rem;
+            letter-spacing: 0.32em;
+            color: rgba(0,229,255,0.75);
+            margin: -4px 0 8px 0;
+            font-weight: bold;
+            user-select: none;
+            pointer-events: none;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: sloganGlow 4s ease-in-out infinite;
+        }
+        @keyframes sloganGlow {
+            0%,100% { opacity: 0.65; text-shadow: 0 0 4px rgba(0,229,255,0.35); }
+            50%     { opacity: 1;    text-shadow: 0 0 10px rgba(0,229,255,0.75), 0 0 18px rgba(0,229,255,0.35); }
+        }
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+        .left-panel {
+            flex: 1;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .right-panel {
+            flex: 1.4;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+        }
+        fieldset {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255,255,255,0.03);
+        }
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            margin-bottom: 10px;
+        }
+        input:focus, select:focus { border: 2px solid #00e5ff; }
+        input[type="checkbox"] { transform: scale(1.1); margin-right: 6px; }
+        button {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        button:hover:not(:disabled) { background-color: #ffffff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .mode-buttons { display: flex; flex-direction: column; gap: 10px; }
+        .mode-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            background: rgba(0,229,255,0.15);
+            border: 2px solid #00e5ff;
+            color: #00e5ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        .mode-btn:hover { background: #00e5ff; color: #003366; }
+        .mode-btn small { display: block; color: #a0d8ff; margin-top: 4px; font-weight: normal; font-size: 0.8rem; }
+        .mode-btn:hover small { color: #003366; }
+        .mode-btn.danger {
+            border-color: #e74c3c;
+            color: #ff8888;
+            background: rgba(231,76,60,0.1);
+        }
+        .mode-btn.danger:hover { background: #e74c3c; color: white; }
+        .mode-btn.danger small { color: #ffaaaa; }
+        .mode-btn.danger:hover small { color: white; }
+
+        /* ---- device picker (device + its interfaces) ---- */
+        .device-pick {
+            border: 1px solid rgba(0,229,255,0.35);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.04);
+        }
+        .device-pick-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed rgba(255,255,255,0.2);
+        }
+        .device-pick-head label {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .device-meta { font-weight: normal; color: #a0d8ff; margin-left: 6px; font-size: 0.85rem; }
+        .iface-count {
+            background: rgba(0,229,255,0.15);
+            border: 1px solid rgba(0,229,255,0.5);
+            color: #a0d8ff;
+            border-radius: 10px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .iface-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 4px 10px;
+        }
+        .iface-grid label {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            font-weight: normal;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .no-iface { color: #ff8888; font-size: 0.85rem; }
+
+        .tab-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 8px;
+        }
+        .tab-btn {
+            padding: 8px 14px;
+            border-radius: 5px;
+            border: 1px solid rgba(0,229,255,0.4);
+            background: rgba(0,229,255,0.05);
+            color: #a0d8ff;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .tab-btn.active { background: #00e5ff; color: #003366; font-weight: bold; }
+        .feat-panel { display: none; }
+        .feat-panel.active { display: block; }
+        .feat-entry {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 5px;
+            border-left: 3px solid transparent;
+        }
+        .feat-entry.active { border-left-color: #00e5ff; background: rgba(0,229,255,0.08); }
+        .feat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .feat-name { font-weight: bold; font-size: 0.92rem; }
+        .feat-help { font-size: 0.75rem; color: #a0d8ff; margin-top: 2px; }
+        .feat-body {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed rgba(255,255,255,0.15);
+            display: none;
+        }
+        .feat-entry.active .feat-body { display: block; }
+        .feat-body label { font-weight: normal; font-size: 0.88rem; }
+        .copy-btn { margin-top: 4px; padding: 6px 10px; font-size: 0.8rem; }
+
+        .stack-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+        .badge-pending { background: #f39c12; color: #333; }
+        .badge-done    { background: #27ae60; color: white; }
+        .badge-failed  { background: #e74c3c; color: white; }
+        .device-card {
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
+        .dev-header { font-weight: bold; margin-bottom: 8px; }
+        .status-line { font-size: 0.85rem; color: #00e5ff; margin-top: 8px; min-height: 1.2em; }
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-row button { flex: 1; }
+        .secondary { background: #888; color: white; }
+        .secondary:hover:not(:disabled) { background: #666; }
+        .success { background: #27ae60; color: white; }
+        .success:hover:not(:disabled) { background: #219150; }
+        .step-indicator { font-size: 0.8rem; color: #a0d8ff; margin-bottom: 12px; }
+        .step-indicator strong { color: #00e5ff; }
+        .job-row {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            font-size: 0.82rem;
+        }
+        .job-id { font-family: monospace; font-size: 0.75rem; color: #a0d8ff; }
+        .iface-tab-bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .iface-tab {
+            padding: 6px 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.05);
+            color: #a0d8ff;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+        .iface-tab.active { background: #27ae60; color: white; font-weight: bold; }
+        .iface-tab .count {
+            background: rgba(0,0,0,0.3);
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-left: 4px;
+            font-size: 0.72rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Interface Features</h1>
+    </header>
+
+    <div class="slogan" aria-hidden="true">
+        Sharnam&nbsp;—&nbsp;Automation&nbsp;you&nbsp;can&nbsp;trust,&nbsp;Year&nbsp;after&nbsp;Year👾👾
+    </div>
+
+    <main>
+        <section class="left-panel">
+            <h2>Recent Feature Jobs</h2>
+            <div id="recentJobs"><em style="color:#a0d8ff;">Loading…</em></div>
+        </section>
+
+        <aside class="right-panel">
+            <h2>Configure Interface Features</h2>
+
+            <!-- STEP 0: OPERATION -->
+            <div id="step-operation">
+                <p style="margin-bottom:12px; font-weight:bold;">Choose operation:</p>
+                <div class="mode-buttons">
+                    <button type="button" class="mode-btn" data-op="feature_add">
+                        Add Features
+                        <small>Push new configuration to devices</small>
+                    </button>
+                    <button type="button" class="mode-btn danger" data-op="feature_remove">
+                        Remove Features
+                        <small>Undo existing configuration</small>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 1: LOAD DEVICES + SELECT INTERFACES -->
+            <div id="step-load" style="display:none">
+                <fieldset>
+                    <legend>Profile &amp; Filter</legend>
+                    <label>Profile (cred_id):
+                        <input type="text" id="cred_id" placeholder="e.g. 3" required>
+                    </label>
+                    <label>Site No:
+                        <input type="text" id="site" placeholder="e.g. site_001" required>
+                    </label>
+                    <label>Device Type:
+                        <input type="text" id="device_type" placeholder="e.g. switch" required>
+                    </label>
+                    <label>Platform (optional):
+                        <input type="text" id="platform" placeholder="e.g. CISCO-IOS-XE">
+                    </label>
+                    <label>Hostname (optional):
+                        <input type="text" id="hostname" placeholder="e.g. NRB-SW-001">
+                    </label>
+                </fieldset>
+                <button type="button" id="loadDevicesBtn">Load Devices</button>
+                <div id="devicePickerBox" style="margin-top:12px;"></div>
+                <div class="btn-row">
+                    <button type="button" class="secondary" id="backToOp">← Back</button>
+                    <button type="button" id="proceedBtn" disabled>Proceed →</button>
+                </div>
+                <div id="statusLoad" class="status-line"></div>
+            </div>
+
+            <!-- STEP 2: PER-DEVICE FEATURE CONFIG -->
+            <div id="step-device" style="display:none">
+                <div class="step-indicator">
+                    Device <strong id="devIdx">1</strong> of <strong id="devTot">1</strong> —
+                    <span id="devName"></span>
+                </div>
+
+                <fieldset>
+                    <legend>Interfaces on this device</legend>
+                    <div id="ifaceTabs" class="iface-tab-bar"></div>
+                    <div id="ifaceSummary" style="font-size:0.82rem;color:#a0d8ff;"></div>
+                </fieldset>
+
+                <fieldset>
+                    <legend id="featLegend">Features on selected interface</legend>
+                    <div class="tab-bar" id="tabBar"></div>
+                    <div id="tabPanels"></div>
+                </fieldset>
+
+                <div class="btn-row">
+                    <button type="button" class="secondary" id="backToLoad">← Devices</button>
+                    <button type="button" class="success" id="nextDeviceBtn">Next Device →</button>
+                </div>
+                <div id="statusDevice" class="status-line"></div>
+            </div>
+
+            <!-- STEP 3: REVIEW & SUBMIT -->
+            <div id="step-review" style="display:none">
+                <div class="step-indicator">Review and submit</div>
+                <div id="reviewBox"></div>
+                <div class="btn-row">
+                    <button type="button" class="secondary" id="backToDevice">← Last Device</button>
+                    <button type="button" class="success" id="submitBtn">Submit All</button>
+                </div>
+                <div id="statusSubmit" class="status-line"></div>
+                <div id="submitResults"></div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        /* ============================================================
+           FEATURE CATALOG
+           ============================================================ */
+        const CATEGORIES = ['General', 'L2', 'IPv4', 'IPv6', 'Access/Storm', 'Advanced'];
+
+        const FEATURES = [
+            /* ---- General ---- */
+            { key: 'description', cat: 'General', label: 'Description', help: '0-200 chars',
+              fields: [{ name: 'value', type: 'text', label: 'Description' }] },
+            { key: 'mtu', cat: 'General', label: 'MTU', help: '64-18000',
+              fields: [{ name: 'value', type: 'number', label: 'MTU', min: 64, max: 18000 }] },
+            { key: 'shutdown', cat: 'General', label: 'Shutdown', help: 'Administrative state',
+              fields: [{ name: 'value', type: 'bool', label: 'Shutdown interface' }] },
+            { key: 'delay', cat: 'General', label: 'Delay', help: '1-16777215 (tens of µs)',
+              fields: [{ name: 'value', type: 'number', label: 'Delay', min: 1, max: 16777215 }] },
+            { key: 'load_interval', cat: 'General', label: 'Load Interval', help: '30-600, step 30',
+              fields: [{ name: 'value', type: 'number', label: 'Seconds', min: 30, max: 600, step: 30 }] },
+            { key: 'max_bandwidth', cat: 'General', label: 'Max Reserved Bandwidth', help: '1-100 (%)',
+              fields: [{ name: 'value', type: 'number', label: 'Percent', min: 1, max: 100 }] },
+            { key: 'mac_address', cat: 'General', label: 'MAC Address', help: 'H.H.H',
+              fields: [{ name: 'value', type: 'text', label: 'MAC', placeholder: '0011.2233.4455' }] },
+
+            /* ---- L2 ---- */
+            { key: 'l2_switchport', cat: 'L2', label: 'Switchport', help: 'true = switchport, false = routed',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable switchport' }] },
+            { key: 'l2_access_vlan', cat: 'L2', label: 'Access VLAN', help: '1-4094',
+              fields: [{ name: 'vlan', type: 'number', label: 'VLAN', min: 1, max: 4094 }] },
+            { key: 'l2_voice_vlan', cat: 'L2', label: 'Voice VLAN', help: 'kind + optional vlan',
+              fields: [
+                { name: 'kind', type: 'enum', label: 'Kind', options: ['id', 'dot1p', 'none', 'untagged', 'name'] },
+                { name: 'vlan', type: 'number', label: 'VLAN (if kind=id)', min: 1, max: 4094 },
+                { name: 'vlan_name', type: 'text', label: 'VLAN name (if kind=name)' }
+              ] },
+            { key: 'l2_voice_detect', cat: 'L2', label: 'Voice Detect', help: 'cisco-phone full-duplex',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable detect' }] },
+            { key: 'l2_trunk_allowed', cat: 'L2', label: 'Trunk Allowed VLANs', help: 'e.g. 10-20,30',
+              fields: [{ name: 'vlans', type: 'text', label: 'VLANs', placeholder: '10-20,30' }] },
+            { key: 'l2_trunk_native_vlan', cat: 'L2', label: 'Trunk Native VLAN', help: '1-4094',
+              fields: [{ name: 'vlan', type: 'number', label: 'VLAN', min: 1, max: 4094 }] },
+            { key: 'l2_trunk_encapsulation', cat: 'L2', label: 'Trunk Encapsulation', help: 'dot1q|isl|negotiate',
+              fields: [{ name: 'value', type: 'enum', label: 'Encap', options: ['dot1q', 'isl', 'negotiate'] }] },
+            { key: 'l2_protected', cat: 'L2', label: 'Switchport Protected', help: 'Isolate protected ports',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_host', cat: 'L2', label: 'Switchport Host', help: 'Optimize for host',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_block_multicast', cat: 'L2', label: 'Block Multicast', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_block_unicast', cat: 'L2', label: 'Block Unicast', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_vepa', cat: 'L2', label: 'VEPA', help: 'Virtual Ethernet Port Aggregator',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_dtp_nonegotiate', cat: 'L2', label: 'DTP Nonegotiate', help: 'Disable DTP',
+              fields: [{ name: 'value', type: 'bool', label: 'Disable DTP' }] },
+            { key: 'l2_port_security_enable', cat: 'L2', label: 'Port Security', help: 'Enable port-security',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_port_security_max', cat: 'L2', label: 'Port Security Max', help: '1-4097',
+              fields: [
+                { name: 'max_addresses', type: 'number', label: 'Max', min: 1, max: 4097 },
+                { name: 'vlan', type: 'text', label: 'VLAN (optional)' }
+              ] },
+            { key: 'l2_port_security_violation', cat: 'L2', label: 'Port Security Violation', help: 'protect|restrict|shutdown',
+              fields: [{ name: 'violation', type: 'enum', label: 'Action', options: ['protect', 'restrict', 'shutdown'] }] },
+            { key: 'l2_port_security_sticky', cat: 'L2', label: 'Port Security Sticky', help: 'Sticky MAC learning',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'l2_port_security_aging', cat: 'L2', label: 'Port Security Aging', help: '1-1440 min',
+              fields: [
+                { name: 'minutes', type: 'number', label: 'Minutes', min: 1, max: 1440 },
+                { name: 'aging_type', type: 'enum', label: 'Type', options: ['absolute', 'inactivity'] }
+              ] },
+            { key: 'l2_port_security_mac', cat: 'L2', label: 'Port Security MAC', help: 'Static secure MAC',
+              fields: [{ name: 'hw_address', type: 'text', label: 'MAC' }] },
+            { key: 'pvlan_host_assoc', cat: 'L2', label: 'PVLAN Host Association', help: 'i-port / c-port',
+              fields: [
+                { name: 'primary_vlan', type: 'number', label: 'Primary VLAN', min: 1, max: 4094 },
+                { name: 'secondary_vlan', type: 'number', label: 'Secondary VLAN', min: 1, max: 4094 }
+              ] },
+            { key: 'pvlan_promiscuous_map', cat: 'L2', label: 'PVLAN Promiscuous Mapping', help: 'p-port',
+              fields: [
+                { name: 'primary_vlan', type: 'number', label: 'Primary VLAN', min: 1, max: 4094 },
+                { name: 'secondary_vlans', type: 'text', label: 'Secondary VLANs', placeholder: '101,102' }
+              ] },
+
+            /* ---- IPv4 ---- */
+            { key: 'ipv4_address', cat: 'IPv4', label: 'IPv4 Address', help: 'ip + mask',
+              fields: [
+                { name: 'ip', type: 'text', label: 'IP' },
+                { name: 'mask', type: 'text', label: 'Mask' },
+                { name: 'secondary', type: 'bool', label: 'Secondary address' }
+              ] },
+            { key: 'ipv4_dhcp', cat: 'IPv4', label: 'IPv4 DHCP / Negotiated', help: 'dhcp or negotiated',
+              fields: [{ name: 'mode', type: 'enum', label: 'Mode', options: ['dhcp', 'negotiated'] }] },
+            { key: 'ipv4_unnumbered', cat: 'IPv4', label: 'IPv4 Unnumbered', help: 'Interface reference',
+              fields: [{ name: 'source_interface_text', type: 'text', label: 'Interface name', placeholder: 'Loopback0' }] },
+            { key: 'ipv4_access_group', cat: 'IPv4', label: 'IPv4 Access Group', help: 'ACL in/out',
+              fields: [
+                { name: 'direction', type: 'enum', label: 'Direction', options: ['in', 'out'] },
+                { name: 'acl', type: 'text', label: 'ACL name' }
+              ] },
+            { key: 'vrf_forwarding', cat: 'IPv4', label: 'VRF Forwarding', help: 'Assign VRF',
+              fields: [{ name: 'vrf', type: 'text', label: 'VRF' }] },
+            { key: 'ipv4_vrf_receive', cat: 'IPv4', label: 'IPv4 VRF Receive', help: '',
+              fields: [{ name: 'vrf', type: 'text', label: 'VRF' }] },
+            { key: 'helper_address', cat: 'IPv4', label: 'Helper Address', help: 'DHCP relay',
+              fields: [
+                { name: 'helper', type: 'text', label: 'Helper IP' },
+                { name: 'vrf', type: 'text', label: 'VRF (optional)' }
+              ] },
+            { key: 'proxy_arp', cat: 'IPv4', label: 'Proxy ARP', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'local_proxy_arp', cat: 'IPv4', label: 'Local Proxy ARP', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'redirects', cat: 'IPv4', label: 'ICMP Redirects', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'tcp_adjust_mss', cat: 'IPv4', label: 'TCP Adjust MSS', help: '500-1460',
+              fields: [{ name: 'mss', type: 'number', label: 'MSS', min: 500, max: 1460 }] },
+            { key: 'ip_mtu', cat: 'IPv4', label: 'IP MTU', help: '68-18000',
+              fields: [{ name: 'value', type: 'number', label: 'MTU', min: 68, max: 18000 }] },
+            { key: 'urpf', cat: 'IPv4', label: 'uRPF', help: 'rx|any',
+              fields: [
+                { name: 'via', type: 'enum', label: 'Mode', options: ['rx', 'any'] },
+                { name: 'allow_default', type: 'bool', label: 'Allow default' },
+                { name: 'allow_self_ping', type: 'bool', label: 'Allow self-ping' }
+              ] },
+            { key: 'arp_inspect_trust', cat: 'IPv4', label: 'ARP Inspection Trust', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Trust' }] },
+            { key: 'directed_broadcast', cat: 'IPv4', label: 'Directed Broadcast', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+
+            /* ---- IPv6 ---- */
+            { key: 'ipv6_enable', cat: 'IPv6', label: 'IPv6 Enable', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'ipv6_address', cat: 'IPv6', label: 'IPv6 Address', help: 'prefix + kind',
+              fields: [
+                { name: 'prefix', type: 'text', label: 'Prefix (CIDR)', placeholder: '2001:db8::/64' },
+                { name: 'kind', type: 'enum', label: 'Kind', options: ['plain', 'eui64', 'anycast'] }
+              ] },
+            { key: 'ipv6_autoconfig', cat: 'IPv6', label: 'IPv6 Autoconfig', help: '',
+              fields: [{ name: 'default', type: 'bool', label: 'Default route' }] },
+            { key: 'ipv6_dhcp', cat: 'IPv6', label: 'IPv6 DHCP', help: '',
+              fields: [{ name: 'rapid_commit', type: 'bool', label: 'Rapid commit' }] },
+            { key: 'ipv6_unnumbered', cat: 'IPv6', label: 'IPv6 Unnumbered', help: '',
+              fields: [{ name: 'source_interface_text', type: 'text', label: 'Interface', placeholder: 'Loopback0' }] },
+            { key: 'ipv6_mtu', cat: 'IPv6', label: 'IPv6 MTU', help: '1280-9976',
+              fields: [{ name: 'value', type: 'number', label: 'MTU', min: 1280, max: 9976 }] },
+            { key: 'ipv6_tcp_adjust_mss', cat: 'IPv6', label: 'IPv6 TCP Adjust MSS', help: '40-1454',
+              fields: [{ name: 'mss', type: 'number', label: 'MSS', min: 40, max: 1454 }] },
+            { key: 'ipv6_traffic_filter', cat: 'IPv6', label: 'IPv6 Traffic Filter', help: 'in|out',
+              fields: [
+                { name: 'direction', type: 'enum', label: 'Direction', options: ['in', 'out'] },
+                { name: 'acl', type: 'text', label: 'ACL name' }
+              ] },
+            { key: 'ipv6_source_guard', cat: 'IPv6', label: 'IPv6 Source Guard', help: 'Attach policy',
+              fields: [{ name: 'policy', type: 'text', label: 'Policy name (optional)' }] },
+            { key: 'ipv6_nd_dad_attempts', cat: 'IPv6', label: 'ND DAD Attempts', help: '0-600',
+              fields: [{ name: 'attempts', type: 'number', label: 'Attempts', min: 0, max: 600 }] },
+            { key: 'ipv6_nd_nud_igp', cat: 'IPv6', label: 'ND NUD IGP', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'ipv6_verify_reverse_path', cat: 'IPv6', label: 'IPv6 Verify Reverse Path', help: '',
+              fields: [{ name: 'acl', type: 'text', label: 'ACL (optional)' }] },
+
+            /* ---- Access/Storm ---- */
+            { key: 'as_port_control', cat: 'Access/Storm', label: 'Access-Session Port Control', help: 'auto|force-authorized|force-unauthorized',
+              fields: [{ name: 'value', type: 'enum', label: 'Mode', options: ['auto', 'force-authorized', 'force-unauthorized'] }] },
+            { key: 'as_control_direction', cat: 'Access/Storm', label: 'Access-Session Control Direction', help: 'both|in',
+              fields: [{ name: 'value', type: 'enum', label: 'Direction', options: ['both', 'in'] }] },
+            { key: 'as_host_mode', cat: 'Access/Storm', label: 'Access-Session Host Mode', help: 'single-host|multi-host|multi-domain|multi-auth',
+              fields: [
+                { name: 'value', type: 'enum', label: 'Mode', options: ['single-host', 'multi-host', 'multi-domain', 'multi-auth'] },
+                { name: 'peer', type: 'bool', label: 'Peer (multi-host only)' }
+              ] },
+            { key: 'as_monitor', cat: 'Access/Storm', label: 'Access-Session Monitor', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'storm_control_action', cat: 'Access/Storm', label: 'Storm Control Action', help: 'level|shutdown|trap',
+              fields: [
+                { name: 'action', type: 'enum', label: 'Action', options: ['level', 'shutdown', 'trap'] },
+                { name: 'level_pct', type: 'number', label: 'Level % (if action=level)', min: 0, max: 100 }
+              ] },
+            { key: 'storm_control_threshold', cat: 'Access/Storm', label: 'Storm Control Threshold', help: 'percent rise/fall',
+              fields: [
+                { name: 'sc_type', type: 'enum', label: 'Type', options: ['broadcast', 'multicast', 'unicast', 'unknown-unicast'] },
+                { name: 'rise', type: 'number', label: 'Rising %', min: 0, max: 100 },
+                { name: 'fall', type: 'number', label: 'Falling %', min: 0, max: 100 }
+              ] },
+            { key: 'storm_control_bcast_include_mcast', cat: 'Access/Storm', label: 'Storm Control Broadcast Include Multicast', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Include multicast' }] },
+
+            /* ---- Advanced ---- */
+            { key: 'arp_timeout', cat: 'Advanced', label: 'ARP Timeout', help: '60-2147483 sec',
+              fields: [{ name: 'seconds', type: 'number', label: 'Seconds', min: 60, max: 2147483 }] },
+            { key: 'arp_snap', cat: 'Advanced', label: 'ARP SNAP', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable SNAP' }] },
+            { key: 'arp_entry_limit', cat: 'Advanced', label: 'ARP Entry Limit', help: '',
+              fields: [
+                { name: 'count', type: 'number', label: 'Max entries', min: 1 },
+                { name: 'log_seconds', type: 'number', label: 'Log interval (s)', min: 0 }
+              ] },
+            { key: 'hold_queue', cat: 'Advanced', label: 'Hold Queue', help: 'in|out + length',
+              fields: [
+                { name: 'direction', type: 'enum', label: 'Direction', options: ['in', 'out'] },
+                { name: 'qlen', type: 'number', label: 'Queue length', min: 1 }
+              ] },
+            { key: 'link_bandwidth', cat: 'Advanced', label: 'Link Bandwidth', help: 'kbps',
+              fields: [
+                { name: 'kbps', type: 'number', label: 'kbps', min: 1, max: 200000000 },
+                { name: 'qos_reference', type: 'bool', label: 'QoS reference' }
+              ] },
+            { key: 'flowcontrol', cat: 'Advanced', label: 'Flow Control', help: 'desired|on|off',
+              fields: [
+                { name: 'rx', type: 'enum', label: 'Receive', options: ['desired', 'on', 'off'] },
+                { name: 'tx', type: 'enum', label: 'Send', options: ['desired', 'on', 'off'] }
+              ] },
+            { key: 'dampening', cat: 'Advanced', label: 'Dampening', help: 'half-life / reuse / suppress / max',
+              fields: [
+                { name: 'half_life', type: 'number', label: 'Half-life (s)', min: 1, max: 30 },
+                { name: 'reuse', type: 'number', label: 'Reuse', min: 1 },
+                { name: 'suppress', type: 'number', label: 'Suppress', min: 1 },
+                { name: 'max_suppress', type: 'number', label: 'Max suppress', min: 1, max: 255 }
+              ] },
+            { key: 'domain_name', cat: 'Advanced', label: 'Domain Name', help: '',
+              fields: [{ name: 'name', type: 'text', label: 'Name' }] },
+            { key: 'domain_path', cat: 'Advanced', label: 'Domain Path', help: 'path + path-id',
+              fields: [
+                { name: 'path', type: 'text', label: 'Path' },
+                { name: 'path_id', type: 'number', label: 'Path ID', min: 1, max: 65535 }
+              ] },
+            { key: 'keepalive', cat: 'Advanced', label: 'Keepalive', help: 'period + retries',
+              fields: [
+                { name: 'enabled', type: 'bool', label: 'Enabled' },
+                { name: 'period', type: 'number', label: 'Period (s)', min: 1, max: 32767 },
+                { name: 'retries', type: 'number', label: 'Retries', min: 1, max: 255 }
+              ] },
+            { key: 'media_type', cat: 'Advanced', label: 'Media Type', help: 'auto-select|rj45|sfp',
+              fields: [{ name: 'value', type: 'enum', label: 'Media', options: ['auto-select', 'rj45', 'sfp'] }] },
+            { key: 'fec', cat: 'Advanced', label: 'FEC', help: 'auto|cl108|cl74|cl91|off',
+              fields: [{ name: 'value', type: 'enum', label: 'FEC', options: ['auto', 'cl108', 'cl74', 'cl91', 'off'] }] },
+            { key: 'po_min_links', cat: 'Advanced', label: 'Port-channel Min Links', help: '2-8',
+              fields: [{ name: 'value', type: 'number', label: 'Min links', min: 2, max: 8 }] },
+            { key: 'po_standalone_disable', cat: 'Advanced', label: 'Port-channel Standalone Disable', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Disable standalone' }] },
+            { key: 'vlan_autostate', cat: 'Advanced', label: 'VLAN Autostate', help: 'Only on SVI (Vlan)',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable autostate' }] },
+            { key: 'tunnel_qos_pre_classify', cat: 'Advanced', label: 'Tunnel QoS Pre-Classify', help: 'Only on Tunnel',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'macsec_enable', cat: 'Advanced', label: 'MACsec', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable MACsec' }] },
+            { key: 'macsec_replay_protection', cat: 'Advanced', label: 'MACsec Replay Protection', help: '0-4294967295',
+              fields: [{ name: 'window', type: 'number', label: 'Window size', min: 0, max: 4294967295 }] },
+            { key: 'subscriber_inactivity', cat: 'Advanced', label: 'Subscriber Inactivity', help: '',
+              fields: [
+                { name: 'seconds', type: 'number', label: 'Seconds', min: 1 },
+                { name: 'probe', type: 'bool', label: 'Probe' }
+              ] },
+            { key: 'subscriber_probe', cat: 'Advanced', label: 'Subscriber Probe', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'nve_host_reachability_bgp', cat: 'Advanced', label: 'NVE Host-Reachability BGP', help: '',
+              fields: [{ name: 'value', type: 'bool', label: 'Enable' }] },
+            { key: 'nve_source_interface', cat: 'Advanced', label: 'NVE Source Interface', help: '',
+              fields: [{ name: 'source_interface_text', type: 'text', label: 'Interface', placeholder: 'Loopback0' }] },
+            { key: 'nve_member_vni_vrf', cat: 'Advanced', label: 'NVE Member VNI + VRF', help: '',
+              fields: [
+                { name: 'vni', type: 'number', label: 'VNI', min: 1, max: 16777215 },
+                { name: 'vrf', type: 'text', label: 'VRF' }
+              ] },
+            { key: 'nve_member_vni_mcast_group', cat: 'Advanced', label: 'NVE Member VNI + Mcast Group', help: '',
+              fields: [
+                { name: 'vni', type: 'number', label: 'VNI', min: 1, max: 16777215 },
+                { name: 'mc_min', type: 'text', label: 'Multicast min' }
+              ] }
+        ];
+
+
+        /* ============================================================
+           STATE
+           perDevice[devId] = {
+             interfaces: [int_id, ...],                 // chosen in Step 1
+             featuresByIface: { [int_id]: [ {feature, _fields}, ... ] },
+             activeIface: int_id | null,
+           }
+           ============================================================ */
+        const state = {
+            operation: null,
+            devices: [],
+            selectedDeviceIds: [],
+            deviceIdx: 0,
+            perDevice: {}
+        };
+
+        function newDeviceState() {
+            return { interfaces: [], featuresByIface: {}, activeIface: null };
+        }
+
+        function getDevState(devId) {
+            if (!state.perDevice[devId]) state.perDevice[devId] = newDeviceState();
+            return state.perDevice[devId];
+        }
+
+        function getIfaceFeatures(devId, intId) {
+            const ds = getDevState(devId);
+            if (!ds.featuresByIface[intId]) ds.featuresByIface[intId] = [];
+            return ds.featuresByIface[intId];
+        }
+
+
+        /* ============================================================
+           HELPERS
+           ============================================================ */
+        function hide(id) { document.getElementById(id).style.display = 'none'; }
+        function show(id) { document.getElementById(id).style.display = 'block'; }
+
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+            ));
+        }
+
+        function findDevice(devId) {
+            return state.devices.find(d => String(d.id) === String(devId));
+        }
+
+        function ifaceName(dev, intId) {
+            const ifc = dev.interfaces.find(x => x.int_id === intId);
+            return ifc ? ifc.int_name : String(intId);
+        }
+
+        function resetAll() {
+            state.operation = null;
+            state.devices = [];
+            state.selectedDeviceIds = [];
+            state.deviceIdx = 0;
+            state.perDevice = {};
+
+            ['step-load', 'step-device', 'step-review'].forEach(hide);
+            show('step-operation');
+
+            ['devicePickerBox', 'ifaceTabs', 'ifaceSummary', 'tabBar', 'tabPanels',
+             'reviewBox', 'submitResults'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            ['statusLoad', 'statusDevice', 'statusSubmit'].forEach(id => {
+                document.getElementById(id).textContent = '';
+            });
+            document.getElementById('proceedBtn').disabled = true;
+        }
+
+        /**
+         * api3 returns interfaces as [{id, name}] (or [{int_id, int_name}]).
+         * Normalise every device to { id, name, type, interfaces: [{int_id, int_name}] }.
+         */
+        function normaliseDevices(rawList) {
+            if (!Array.isArray(rawList)) return [];
+            return rawList.map(d => {
+                const raw = d.interfaces ?? d.ports ?? d.ifaces ?? [];
+                const ifaces = Array.isArray(raw)
+                    ? raw.map((i, idx) => ({
+                        int_id:   Number(i.int_id ?? i.id ?? (idx + 1)),
+                        int_name: i.int_name ?? i.name ?? String(i)
+                      }))
+                    : [];
+                return {
+                    id:         d.id ?? d.device_id,
+                    name:       d.name ?? d.hostname ?? '',
+                    type:       d.type ?? d.device_type ?? '',
+                    interfaces: ifaces
+                };
+            });
+        }
+
+
+        /* ============================================================
+           STEP 0 — OPERATION
+           ============================================================ */
+        document.querySelectorAll('.mode-btn[data-op]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                state.operation = btn.dataset.op;
+                hide('step-operation');
+                show('step-load');
+            });
+        });
+
+
+        /* ============================================================
+           STEP 1 — LOAD DEVICES, EACH SHOWN WITH ITS OWN INTERFACES
+           ============================================================ */
+        document.getElementById('loadDevicesBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const statusEl = document.getElementById('statusLoad');
+            statusEl.textContent = 'Loading…';
+
+            const credId   = document.getElementById('cred_id').value.trim();
+            const site     = document.getElementById('site').value.trim();
+            const type     = document.getElementById('device_type').value.trim();
+            const platform = document.getElementById('platform').value.trim();
+            const hostname = document.getElementById('hostname').value.trim();
+
+            if (!credId) { alert('cred_id required'); statusEl.textContent = ''; return; }
+            if (!site)   { alert('site required');   statusEl.textContent = ''; return; }
+            if (!type)   { alert('device type required'); statusEl.textContent = ''; return; }
+
+            const qs = new URLSearchParams({ site, type, platform, hostname }).toString();
+            let data;
+            try {
+                const res = await fetch('api3.php?' + qs);
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                data = await res.json();
+            } catch (err) {
+                alert('Load failed: ' + err.message);
+                statusEl.textContent = '';
+                return;
+            }
+
+            if (data.status !== 'success') {
+                alert(data.message || 'Load failed');
+                statusEl.textContent = '';
+                return;
+            }
+
+            state.devices = normaliseDevices(data.message || data.devices || []);
+            renderDevicePicker();
+
+            const ifaceTotal = state.devices.reduce((sum, d) => sum + d.interfaces.length, 0);
+            statusEl.textContent = `${state.devices.length} device(s), ${ifaceTotal} interface(s) loaded`;
+        });
+
+        function renderDevicePicker() {
+            const box = document.getElementById('devicePickerBox');
+            box.innerHTML = '';
+
+            if (state.devices.length === 0) {
+                box.innerHTML = '<em style="color:#a0d8ff;">No devices matched the filter.</em>';
+                document.getElementById('proceedBtn').disabled = true;
+                return;
+            }
+
+            state.devices.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'device-pick';
+                card.dataset.dev = d.id;
+
+                // ---- header: device checkbox + name + interface count ----
+                const head = document.createElement('div');
+                head.className = 'device-pick-head';
+
+                const lbl = document.createElement('label');
+                const devChk = document.createElement('input');
+                devChk.type = 'checkbox';
+                devChk.className = 'dev-chk';
+                devChk.dataset.dev = d.id;
+                devChk.disabled = d.interfaces.length === 0;
+                lbl.appendChild(devChk);
+
+                const title = document.createElement('span');
+                title.innerHTML = `${esc(d.id)}<span class="device-meta">${esc(d.name || '(unnamed)')}${d.type ? ' · ' + esc(d.type) : ''}</span>`;
+                lbl.appendChild(title);
+
+                const count = document.createElement('span');
+                count.className = 'iface-count';
+                count.textContent = d.interfaces.length + ' interface' + (d.interfaces.length === 1 ? '' : 's');
+
+                head.appendChild(lbl);
+                head.appendChild(count);
+                card.appendChild(head);
+
+                // ---- body: this device's interfaces ----
+                if (d.interfaces.length === 0) {
+                    const none = document.createElement('div');
+                    none.className = 'no-iface';
+                    none.textContent = 'No interfaces in DB for this device';
+                    card.appendChild(none);
+                } else {
+                    const grid = document.createElement('div');
+                    grid.className = 'iface-grid';
+                    d.interfaces.forEach(ifc => {
+                        const l = document.createElement('label');
+                        const c = document.createElement('input');
+                        c.type = 'checkbox';
+                        c.className = 'ifc-chk';
+                        c.dataset.dev = d.id;
+                        c.dataset.int = ifc.int_id;
+                        l.appendChild(c);
+                        l.appendChild(document.createTextNode(ifc.int_name));
+                        grid.appendChild(l);
+                    });
+                    card.appendChild(grid);
+                }
+
+                box.appendChild(card);
+            });
+
+            // Device checkbox -> toggle all of ITS interfaces only
+            box.querySelectorAll('.dev-chk').forEach(chk => {
+                chk.addEventListener('change', () => {
+                    const devId = chk.dataset.dev;
+                    box.querySelectorAll('.ifc-chk').forEach(ic => {
+                        if (ic.dataset.dev === devId) ic.checked = chk.checked;
+                    });
+                    chk.indeterminate = false;
+                    updateProceedButton();
+                });
+            });
+
+            // Interface checkbox -> sync the parent device checkbox (checked / partial / empty)
+            box.querySelectorAll('.ifc-chk').forEach(ic => {
+                ic.addEventListener('change', () => syncDeviceCheckbox(ic.dataset.dev));
+            });
+
+            updateProceedButton();
+        }
+
+        function syncDeviceCheckbox(devId) {
+            const box = document.getElementById('devicePickerBox');
+            const all = [...box.querySelectorAll('.ifc-chk')].filter(c => c.dataset.dev === devId);
+            const on  = all.filter(c => c.checked).length;
+            const devChk = [...box.querySelectorAll('.dev-chk')].find(c => c.dataset.dev === devId);
+            if (devChk) {
+                devChk.checked = all.length > 0 && on === all.length;
+                devChk.indeterminate = on > 0 && on < all.length;
+            }
+            updateProceedButton();
+        }
+
+        function updateProceedButton() {
+            const anyIface = document.querySelectorAll('.ifc-chk:checked').length;
+            document.getElementById('proceedBtn').disabled = anyIface === 0;
+        }
+
+        document.getElementById('backToOp').addEventListener('click', () => {
+            hide('step-load');
+            show('step-operation');
+            state.operation = null;
+        });
+
+        document.getElementById('proceedBtn').addEventListener('click', () => {
+            const checkedIfaces = [...document.querySelectorAll('.ifc-chk:checked')];
+            if (checkedIfaces.length === 0) {
+                alert('Select at least one interface');
+                return;
+            }
+
+            state.perDevice = {};
+            state.selectedDeviceIds = [];
+
+            const byDevice = {};
+            checkedIfaces.forEach(chk => {
+                const devId = chk.dataset.dev;
+                (byDevice[devId] = byDevice[devId] || []).push(Number(chk.dataset.int));
+            });
+
+            // keep the same order as the picker
+            state.devices.forEach(d => {
+                const intIds = byDevice[String(d.id)];
+                if (!intIds) return;
+                const ds = getDevState(d.id);
+                ds.interfaces = intIds;
+                ds.activeIface = intIds[0];
+                state.selectedDeviceIds.push(String(d.id));
+            });
+
+            state.deviceIdx = 0;
+            hide('step-load');
+            show('step-device');
+            renderDeviceStep();
+        });
+
+
+        /* ============================================================
+           STEP 2 — PER-DEVICE FEATURE WIZARD
+           ============================================================ */
+        function currentDevice() {
+            return findDevice(state.selectedDeviceIds[state.deviceIdx]);
+        }
+
+        function renderDeviceStep() {
+            const dev = currentDevice();
+            if (!dev) return;
+
+            document.getElementById('devIdx').textContent = state.deviceIdx + 1;
+            document.getElementById('devTot').textContent = state.selectedDeviceIds.length;
+            document.getElementById('devName').textContent = dev.id + ' — ' + (dev.name || '');
+
+            renderIfaceTabs(dev);
+            renderFeatureTabs(dev);
+        }
+
+        function renderIfaceTabs(dev) {
+            const ds = getDevState(dev.id);
+            const box = document.getElementById('ifaceTabs');
+            box.innerHTML = '';
+
+            ds.interfaces.forEach(intId => {
+                const feats = getIfaceFeatures(dev.id, intId);
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'iface-tab' + (intId === ds.activeIface ? ' active' : '');
+                btn.innerHTML = `${esc(ifaceName(dev, intId))}<span class="count">${feats.length}</span>`;
+                btn.addEventListener('click', () => {
+                    ds.activeIface = intId;
+                    renderIfaceTabs(dev);
+                    renderFeatureTabs(dev);
+                });
+                box.appendChild(btn);
+            });
+
+            document.getElementById('ifaceSummary').textContent =
+                `${ds.interfaces.length} interface(s) selected on ${dev.id} — click a tab to edit its features`;
+        }
+
+        function renderFeatureTabs(dev) {
+            const ds = getDevState(dev.id);
+            const ifaceId = ds.activeIface;
+            const tabBar = document.getElementById('tabBar');
+            const panels = document.getElementById('tabPanels');
+            const legend = document.getElementById('featLegend');
+            tabBar.innerHTML = '';
+            panels.innerHTML = '';
+
+            if (ifaceId == null) {
+                legend.textContent = 'Features on selected interface';
+                panels.innerHTML = '<em style="color:#ff8888;">No interface selected</em>';
+                return;
+            }
+            legend.textContent = 'Features on ' + ifaceName(dev, ifaceId);
+
+            CATEGORIES.forEach((cat, i) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+                btn.textContent = cat;
+                btn.dataset.cat = cat;
+                btn.addEventListener('click', () => activateTab(cat));
+                tabBar.appendChild(btn);
+
+                const panel = document.createElement('div');
+                panel.className = 'feat-panel' + (i === 0 ? ' active' : '');
+                panel.dataset.cat = cat;
+                FEATURES.filter(f => f.cat === cat)
+                        .forEach(feat => panel.appendChild(buildFeatureEntry(feat, dev, ifaceId)));
+                panels.appendChild(panel);
+            });
+        }
+
+        function activateTab(cat) {
+            document.querySelectorAll('.tab-btn').forEach(b =>
+                b.classList.toggle('active', b.dataset.cat === cat));
+            document.querySelectorAll('.feat-panel').forEach(p =>
+                p.classList.toggle('active', p.dataset.cat === cat));
+        }
+
+        function buildFeatureEntry(feat, dev, ifaceId) {
+            const ifaceFeats = getIfaceFeatures(dev.id, ifaceId);
+            const ds = getDevState(dev.id);
+
+            const wrap = document.createElement('div');
+            wrap.className = 'feat-entry' + (ifaceFeats.some(x => x.feature === feat.key) ? ' active' : '');
+            wrap.dataset.feat = feat.key;
+
+            const head = document.createElement('div');
+            head.className = 'feat-header';
+
+            const left = document.createElement('div');
+            left.innerHTML =
+                `<div class="feat-name">${esc(feat.label)}</div>
+                 ${feat.help ? `<div class="feat-help">${esc(feat.help)}</div>` : ''}`;
+
+            const chk = document.createElement('input');
+            chk.type = 'checkbox';
+            chk.className = 'feat-chk';
+            chk.checked = ifaceFeats.some(x => x.feature === feat.key);
+
+            head.appendChild(left);
+            head.appendChild(chk);
+
+            const body = document.createElement('div');
+            body.className = 'feat-body';
+
+            // Make sure the feature entry exists (and the box is ticked) as soon as a value is touched
+            const ensure = () => {
+                let f = ifaceFeats.find(x => x.feature === feat.key);
+                if (!f) {
+                    f = { feature: feat.key, _fields: {} };
+                    ifaceFeats.push(f);
+                    chk.checked = true;
+                    wrap.classList.add('active');
+                    renderIfaceTabs(dev);
+                }
+                return f;
+            };
+
+            feat.fields.forEach(field => {
+                const lbl = document.createElement('label');
+                lbl.textContent = field.label;
+                body.appendChild(lbl);
+                body.appendChild(buildFieldInput(field, feat, ifaceFeats, ensure));
+            });
+
+            // Copy this feature (with its current values) to every other selected interface
+            if (ds.interfaces.length > 1) {
+                const copyBtn = document.createElement('button');
+                copyBtn.type = 'button';
+                copyBtn.className = 'copy-btn secondary';
+                copyBtn.textContent = 'Copy to all other selected interfaces';
+                copyBtn.addEventListener('click', () => {
+                    const current = ifaceFeats.find(x => x.feature === feat.key);
+                    if (!current) {
+                        alert('Tick the feature and set its values first.');
+                        return;
+                    }
+                    ds.interfaces.forEach(otherId => {
+                        if (otherId === ifaceId) return;
+                        const list = getIfaceFeatures(dev.id, otherId);
+                        const clone = { feature: feat.key, _fields: JSON.parse(JSON.stringify(current._fields || {})) };
+                        const idx = list.findIndex(x => x.feature === feat.key);
+                        if (idx >= 0) list[idx] = clone; else list.push(clone);
+                    });
+                    renderIfaceTabs(dev);
+                    document.getElementById('statusDevice').textContent =
+                        `"${feat.label}" copied to ${ds.interfaces.length - 1} other interface(s)`;
+                });
+                body.appendChild(copyBtn);
+            });
+
+            wrap.appendChild(head);
+            wrap.appendChild(body);
+
+            chk.addEventListener('change', () => {
+                wrap.classList.toggle('active', chk.checked);
+                if (chk.checked) {
+                    ensure();
+                } else {
+                    const idx = ifaceFeats.findIndex(x => x.feature === feat.key);
+                    if (idx >= 0) ifaceFeats.splice(idx, 1);
+                }
+                renderIfaceTabs(dev);
+            });
+
+            return wrap;
+        }
+
+        function buildFieldInput(field, feat, ifaceFeats, ensure) {
+            const existing = ifaceFeats.find(x => x.feature === feat.key);
+            const cur = existing ? (existing._fields || {}) : {};
+
+            let input;
+            if (field.type === 'bool') {
+                input = document.createElement('input');
+                input.type = 'checkbox';
+                if (cur[field.name]) input.checked = true;
+            } else if (field.type === 'enum') {
+                input = document.createElement('select');
+                const blank = document.createElement('option');
+                blank.value = '';
+                blank.textContent = '— select —';
+                input.appendChild(blank);
+                field.options.forEach(o => {
+                    const opt = document.createElement('option');
+                    opt.value = o;
+                    opt.textContent = o;
+                    if (cur[field.name] === o) opt.selected = true;
+                    input.appendChild(opt);
+                });
+            } else if (field.type === 'number') {
+                input = document.createElement('input');
+                input.type = 'number';
+                if (field.min !== undefined) input.min = field.min;
+                if (field.max !== undefined) input.max = field.max;
+                if (field.step !== undefined) input.step = field.step;
+                if (cur[field.name] !== undefined) input.value = cur[field.name];
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                if (field.placeholder) input.placeholder = field.placeholder;
+                if (cur[field.name] !== undefined) input.value = cur[field.name];
+            }
+
+            input.addEventListener('change', () => {
+                const f = ensure();
+                f._fields = f._fields || {};
+                if (field.type === 'bool') {
+                    f._fields[field.name] = input.checked;
+                } else if (input.value === '') {
+                    delete f._fields[field.name];
+                } else if (field.type === 'number') {
+                    f._fields[field.name] = Number(input.value);
+                } else {
+                    f._fields[field.name] = input.value;
+                }
+            });
+
+            return input;
+        }
+
+        document.getElementById('backToLoad').addEventListener('click', () => {
+            hide('step-device');
+            show('step-load');
+        });
+
+        document.getElementById('nextDeviceBtn').addEventListener('click', () => {
+            const dev = currentDevice();
+            if (!dev) return;
+            const ds = getDevState(dev.id);
+
+            const totalFeats = ds.interfaces.reduce(
+                (sum, intId) => sum + getIfaceFeatures(dev.id, intId).length, 0
+            );
+            if (totalFeats === 0) {
+                alert('Configure at least one feature on this device');
+                return;
+            }
+
+            document.getElementById('statusDevice').textContent = '';
+            if (state.deviceIdx < state.selectedDeviceIds.length - 1) {
+                state.deviceIdx++;
+                renderDeviceStep();
+            } else {
+                hide('step-device');
+                show('step-review');
+                renderReview();
+            }
+        });
+
+
+        /* ============================================================
+           STEP 3 — REVIEW & SUBMIT (each device with its interfaces)
+           ============================================================ */
+        function renderReview() {
+            const box = document.getElementById('reviewBox');
+            box.innerHTML = '';
+
+            state.selectedDeviceIds.forEach(devId => {
+                const dev = findDevice(devId);
+                const ds = getDevState(devId);
+
+                const card = document.createElement('div');
+                card.className = 'device-card';
+
+                let html = `<div class="dev-header">${esc(dev.id)} — ${esc(dev.name || '')}</div>`;
+
+                ds.interfaces.forEach(intId => {
+                    const feats = getIfaceFeatures(dev.id, intId);
+
+                    html += `<div style="margin-top:8px; padding-left:8px; border-left:2px solid rgba(0,229,255,0.4);">
+                             <strong style="color:#00e5ff;">${esc(ifaceName(dev, intId))}</strong>`;
+                    if (feats.length === 0) {
+                        html += `<div style="color:#a0d8ff; font-size:0.8rem;">(no features — will be skipped)</div>`;
+                    } else {
+                        html += `<ul style="margin-left:18px; margin-top:4px; font-size:0.82rem;">`;
+                        feats.forEach(f => {
+                            const spec = FEATURES.find(x => x.key === f.feature);
+                            const vals = Object.entries(f._fields || {})
+                                .map(([k, v]) => `${esc(k)}=${esc(v)}`).join(', ');
+                            html += `<li>${esc(spec ? spec.label : f.feature)}${vals ? ' — ' + vals : ''}</li>`;
+                        });
+                        html += `</ul>`;
+                    }
+                    html += `</div>`;
+                });
+
+                card.innerHTML = html;
+                box.appendChild(card);
+            });
+        }
+
+        document.getElementById('backToDevice').addEventListener('click', () => {
+            hide('step-review');
+            show('step-device');
+            state.deviceIdx = state.selectedDeviceIds.length - 1;
+            renderDeviceStep();
+        });
+
+        document.getElementById('submitBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const statusEl = document.getElementById('statusSubmit');
+            const resultsEl = document.getElementById('submitResults');
+            const btn = e.target;
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+            statusEl.textContent = 'Dispatching per-device jobs…';
+            resultsEl.innerHTML = '';
+
+            const credId = document.getElementById('cred_id').value.trim();
+
+            const payloadDevices = [];
+            state.selectedDeviceIds.forEach(devId => {
+                const dev = findDevice(devId);
+                const ds = getDevState(devId);
+
+                // Each interface gets its OWN features[] array
+                const interfacesPayload = ds.interfaces.map(intId => {
+                    const features = getIfaceFeatures(dev.id, intId).map(f => {
+                        const obj = { feature: f.feature };
+                        Object.entries(f._fields || {}).forEach(([k, v]) => { obj[k] = v; });
+                        if (state.operation === 'feature_remove') obj.remove = true;
+                        return obj;
+                    });
+                    return { int_id: intId, features };
+                }).filter(iface => iface.features.length > 0);
+
+                if (interfacesPayload.length === 0) return;
+
+                payloadDevices.push({
+                    id: dev.id,
+                    interfaces: interfacesPayload,
+                    native_features: []
+                });
+            });
+
+            if (payloadDevices.length === 0) {
+                alert('No features to submit');
+                btn.disabled = false;
+                btn.textContent = 'Submit All';
+                return;
+            }
+
+            const payload = {
+                cred_id: Number(credId),
+                operation: state.operation,
+                devices: payloadDevices
+            };
+
+            let data;
+            try {
+                const res = await fetch('api10.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                data = await res.json();
+            } catch (err) {
+                alert('Submit failed: ' + err.message);
+                statusEl.textContent = 'Error.';
+                btn.disabled = false;
+                btn.textContent = 'Submit All';
+                return;
+            }
+
+            console.log('[submit]', data);
+
+            if (data.status === 'error') {
+                statusEl.textContent = 'Rejected.';
+                alert('Rejected:\n' + (data.errors
+                    ? data.errors.map(x => (x.device_id || '') + ': ' + x.error).join('\n')
+                    : data.message));
+                btn.disabled = false;
+                btn.textContent = 'Submit All';
+                return;
+            }
+
+            if (!Array.isArray(data.jobs)) {
+                alert('Unexpected response: ' + JSON.stringify(data));
+                btn.disabled = false;
+                btn.textContent = 'Submit All';
+                return;
+            }
+
+            renderSubmitResults(data.jobs);
+            statusEl.textContent = `Dispatched ${data.dispatched}/${data.total}. Polling…`;
+
+            const acceptedJobs = data.jobs.filter(j => j.status === 'accepted');
+            await Promise.all(acceptedJobs.map(j => pollJob(j.job_id)));
+
+            statusEl.textContent = 'All jobs finished.';
+            btn.disabled = false;
+            btn.textContent = 'Submit All';
+        });
+
+        function renderSubmitResults(jobs) {
+            const box = document.getElementById('submitResults');
+            box.innerHTML = '';
+            jobs.forEach(j => {
+                const card = document.createElement('div');
+                card.className = 'job-row';
+                card.id = 'job-' + j.job_id;
+                card.innerHTML = `
+                    <div><strong>${esc(j.device_id)}</strong>
+                         <span class="stack-badge badge-${j.status === 'accepted' ? 'pending' : 'failed'}">
+                             ${esc(j.status)}
+                         </span></div>
+                    <div class="job-id">${esc(j.job_id)}</div>
+                    <div class="status-text" style="font-size:0.8rem;color:#a0d8ff;"></div>
+                `;
+                box.appendChild(card);
+            });
+        }
+
+        async function pollJob(jobId) {
+            const card = document.getElementById('job-' + jobId);
+            const statusText = card ? card.querySelector('.status-text') : null;
+            const badge = card ? card.querySelector('.stack-badge') : null;
+
+            const started = Date.now();
+            const POLL_MS = 5000;
+            const MAX_MS = 30 * 60 * 1000;
+
+            while (Date.now() - started < MAX_MS) {
+                await new Promise(r => setTimeout(r, POLL_MS));
+                let poll;
+                try {
+                    const pr = await fetch('api10.php?job=' + encodeURIComponent(jobId));
+                    poll = await pr.json();
+                } catch (err) {
+                    if (statusText) statusText.textContent = 'poll error, retrying…';
+                    continue;
+                }
+                if (poll.status === 'pending') {
+                    if (statusText) statusText.textContent = 'pending (' +
+                        Math.round((Date.now() - started) / 1000) + 's)';
+                    continue;
+                }
+                if (poll.status === 'error') {
+                    if (statusText) statusText.textContent = 'FAILED: ' + (poll.message || 'unknown');
+                    if (badge) { badge.className = 'stack-badge badge-failed'; badge.textContent = 'failed'; }
+                    return;
+                }
+                if (poll.status === 'success') {
+                    if (statusText) statusText.textContent = 'done';
+                    if (badge) { badge.className = 'stack-badge badge-done'; badge.textContent = 'done'; }
+                    return;
+                }
+            }
+            if (statusText) statusText.textContent = 'TIMEOUT';
+            if (badge) { badge.className = 'stack-badge badge-failed'; badge.textContent = 'timeout'; }
+        }
+
+
+        /* ============================================================
+           LEFT PANEL — RECENT JOBS
+           ============================================================ */
+        async function loadRecentJobs() {
+            const box = document.getElementById('recentJobs');
+            try {
+                const res = await fetch('api10.php?recent=10');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                if (data.status !== 'success') throw new Error(data.message);
+
+                const jobs = data.jobs || [];
+                if (jobs.length === 0) {
+                    box.innerHTML = '<em style="color:#a0d8ff;">No recent jobs</em>';
+                    return;
+                }
+
+                box.innerHTML = '';
+                jobs.forEach(j => {
+                    const card = document.createElement('div');
+                    card.className = 'job-row';
+                    const badgeClass =
+                        j.status === 'done'   ? 'badge-done' :
+                        j.status === 'failed' ? 'badge-failed' :
+                                                'badge-pending';
+                    card.innerHTML = `
+                        <div><strong>${esc(j.device_id || '(unknown)')}</strong>
+                             <span class="stack-badge ${badgeClass}">${esc(j.status)}</span>
+                             <span style="color:#a0d8ff;font-size:0.75rem;margin-left:6px;">
+                                 ${esc(j.operation || '')} @ ${esc(j.train || '')}
+                             </span></div>
+                        <div class="job-id">${esc(j.job_id)}</div>
+                        <div style="font-size:0.75rem;color:#a0d8ff;">
+                            ${esc(j.created_at || '')}
+                            ${j.result && j.status === 'failed' ? '<br>err: ' + esc(j.result) : ''}
+                        </div>
+                    `;
+                    box.appendChild(card);
+                });
+            } catch (err) {
+                console.error('Recent jobs error:', err);
+                box.innerHTML = '<em style="color:#ff8888;">Failed to load recent jobs</em>';
+            }
+        }
+
+
+        /* ============================================================
+           INIT
+           ============================================================ */
+        resetAll();
+        loadRecentJobs();
+        setInterval(loadRecentJobs, 15000);
+    </script>
+</body>
+</html>

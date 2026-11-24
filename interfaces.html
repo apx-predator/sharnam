@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Interfaces</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('file:///D:/sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .interfaces-available {
+            flex: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-interface {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Interfaces</h1>
+    </header>
+
+    <main>
+        <section class="interfaces-available">
+            <h2>Available Interfaces</h2>
+            <ul id="interfaces" class="interfaces">
+                <!-- JavaScript will insert interface rows here dynamically -->
+            </ul>
+        </section>
+
+        <aside class="add-interface">
+            <h2>Add Interface</h2>
+
+            <form class="form" id="add-interface-form">
+                <p>
+                    <label for="site-id">Site ID</label>
+                    <input type="text" id="site-id" name="site-id"
+                           placeholder="e.g., site_0001" required>
+                </p>
+
+                <p>
+                    <label for="device-type">Device Type</label>
+                    <input type="text" id="device-type" name="device-type"
+                           placeholder="e.g., router, switch, firewall" required>
+                </p>
+
+                <p>
+                    <label for="device-role">Device Role</label>
+                    <input type="text" id="device-role" name="device-role"
+                           placeholder="e.g., core, distribution, access">
+                </p>
+
+                <p>
+                    <label for="platform">Device Platform</label>
+                    <input type="text" id="platform" name="platform"
+                           placeholder="e.g., CISCO-IOS-XE">
+                </p>
+
+                <p>
+                    <label for="hostname">Hostname</label>
+                    <input type="text" id="hostname" name="hostname"
+                           placeholder="e.g., NRB-RT-001">
+                </p>
+
+                <!-- Interface Type (radio group) -->
+                <fieldset>
+                    <legend>Interface Type</legend>
+                    <label>
+                        <input type="radio" name="int_type" value="Physical" checked>
+                        Physical
+                    </label>
+                    <label>
+                        <input type="radio" name="int_type" value="Sub-interface">
+                        Sub-interface
+                    </label>
+                    <label>
+                        <input type="radio" name="int_type" value="Virtual">
+                        Virtual
+                    </label>
+                </fieldset>
+
+                <p>
+                    <label for="interface-name">Interface Name</label>
+                    <input type="text" id="interface-name" name="interface-name"
+                           placeholder="e.g., GigabitEthernet1" required>
+                </p>
+
+                <p>
+                    <label for="parent-id">Parent Interface ID (Optional)</label>
+                    <input type="text" id="parent-id" name="parent-id"
+                           placeholder="e.g., 12 (Leave empty if Physical)">
+                </p>
+
+                <p>
+                    <label for="vrf-id">VRF ID (Optional)</label>
+                    <input type="text" id="vrf-id" name="vrf-id"
+                           placeholder="e.g., 2">
+                </p>
+
+                <!-- Administrative State (radio group) -->
+                <fieldset>
+                    <legend>Administrative State</legend>
+                    <label>
+                        <input type="radio" name="state" value="Up" checked>
+                        Up (no shut)
+                    </label>
+                    <label>
+                        <input type="radio" name="state" value="Down">
+                        Down (shut)
+                    </label>
+                </fieldset>
+
+                <p>
+                    <label for="description">Description</label>
+                    <input type="text" id="description" name="description"
+                           placeholder="e.g., Uplink_to_Core">
+                </p>
+
+                <p>
+                    <label for="link-type">Link Mode Connection</label>
+                    <select id="link-type" name="link-type">
+                        <option value="Routed">Routed Layer-3 Port</option>
+                        <option value="Access">Access Layer-2 Port</option>
+                        <option value="Trunk">Trunk 802.1Q Port</option>
+                        <option value="svi">SVI Interface</option>
+                    </select>
+                </p>
+
+                <button type="submit">Add Interface</button>
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        /* ============================================================
+           ADD INTERFACE TO DATABASE
+           ============================================================ */
+        const addForm = document.getElementById("add-interface-form");
+
+        addForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // Read text inputs
+            const site     = document.getElementById("site-id").value.trim();
+            const type     = document.getElementById("device-type").value.trim();
+            const role     = document.getElementById("device-role").value.trim();
+            const plat     = document.getElementById("platform").value.trim();
+            const host     = document.getElementById("hostname").value.trim();
+            const intfName = document.getElementById("interface-name").value.trim();
+            const parentId = document.getElementById("parent-id").value.trim();
+            const vrfId    = document.getElementById("vrf-id").value.trim();
+            const descr    = document.getElementById("description").value.trim();
+            const linkType = document.getElementById("link-type").value;
+
+            // Read radio groups
+            const intfType = document.querySelector('input[name="int_type"]:checked')?.value || "";
+            const admState = document.querySelector('input[name="state"]:checked')?.value || "";
+
+            // Basic client-side validation
+            if (!site || !type || !intfName) {
+                alert("Please fill in the required fields: Site ID, Device Type, Interface Name.");
+                return;
+            }
+
+            const payload = {
+                site_id: site,
+                device_type: type,
+                device_role: role,
+                platform: plat,
+                hostname: host,
+                intf_type: intfType,
+                intf_name: intfName,
+                parent_id: parentId || null,
+                vrf_id: vrfId || null,
+                adm_state: admState,
+                desc: descr,
+                link_type: linkType
+            };
+
+            try {
+                const response = await fetch("api.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to contact backend!!!");
+                }
+
+                const resp = await response.json();
+
+                if (resp.status === "error") {
+                    throw new Error(resp.message);
+                }
+
+                alert("Interface saved successfully! ✔✔🎉");
+                addForm.reset();
+                loadInterfaces();
+
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+        /* ============================================================
+           LOAD INTERFACES FROM BACKEND
+           ============================================================ */
+        const interfacesList = document.getElementById("interfaces");
+
+        async function loadInterfaces() {
+            try {
+                const response = await fetch("api.php");
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to contact backend!!!");
+                }
+
+                const data = await response.json();
+
+                if (data.status === "error") {
+                    throw new Error(data.message);
+                }
+
+                interfacesList.innerHTML = "";
+
+                data.interfaces.forEach(function (iface) {
+                    try {
+                        const li = document.createElement("li");
+                        li.className = "interfaces-list";
+                        li.style.listStyle = "none";
+                        li.style.marginBottom = "15px";
+                        li.style.padding = "10px";
+                        li.style.backgroundColor = "rgba(255,255,255,0.05)";
+                        li.style.borderRadius = "5px";
+
+                        li.innerHTML = `
+                            <div style="margin-bottom: 8px;">
+                                <strong>Hostname:</strong>
+                                <span class="txt-hostname">${iface.hostname}</span><br>
+
+                                <strong>interface_name:</strong>
+                                <span class="txt-intf-name">${iface.interface_name}</span><br>
+
+                                <strong>interface_type:</strong>
+                                <span class="txt-intf-type">${iface.interface_type}</span><br>
+
+                                <strong>parent_interface:</strong>
+                                <span class="txt-parent">${iface.parent_interface || "—"}</span><br>
+
+                                <strong>vrf_name:</strong>
+                                <span class="txt-vrf">${iface.vrf_name || "—"}</span><br>
+
+                                <strong>interface_status:</strong>
+                                <span class="txt-status">${iface.status || "—"}</span><br>
+
+                                <strong>description:</strong>
+                                <span class="txt-desc">${iface.description || "—"}</span><br>
+
+                                <strong>interface_mode:</strong>
+                                <span class="txt-mode">${iface.mode || "—"}</span><br>
+                            </div>
+
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button class="btn-delete"
+                                        style="background: #e74c3c; color: white; padding: 4px 10px;
+                                               font-size: 12px; width: auto; margin: 0; border: none;
+                                               border-radius: 3px; cursor: pointer;">
+                                    Remove
+                                </button>
+                            </div>
+                        `;
+
+                        interfacesList.appendChild(li);
+
+                        // Hook up delete listener for this specific interface
+                        const delBtn = li.querySelector(".btn-delete");
+
+                        delBtn.addEventListener("click", async function () {
+                            if (!confirm(`Remove interface ${iface.interface_name} from ${iface.hostname}?`)) {
+                                return;
+                            }
+
+                            try {
+                                const deleting = await fetch("api.php", {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        hostname: iface.hostname,
+                                        interface_name: iface.interface_name
+                                    })
+                                });
+
+                                if (!deleting.ok) {
+                                    throw new Error("Error while trying to delete the interface!!!");
+                                }
+
+                                const delRes = await deleting.json();
+
+                                if (delRes.status === "error") {
+                                    throw new Error(delRes.message);
+                                }
+
+                                alert("Interface deleted successfully! ✔✔🎉");
+                                loadInterfaces();
+
+                            } catch (err) {
+                                alert("Deletion error: " + err.message);
+                            }
+                        });
+
+                    } catch (renderErr) {
+                        console.error("Error rendering interface:", renderErr.message);
+                    }
+                });
+
+            } catch (err) {
+                console.error("loadInterfaces error:", err.message);
+            }
+        }
+
+        /* ============================================================
+           INITIAL LOAD + AUTO-SYNC LOOP
+           ============================================================ */
+        loadInterfaces();
+        setInterval(loadInterfaces, 15000);
+    </script>
+</body>
+</html>

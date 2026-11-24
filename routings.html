@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Interface IPs</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('file:///D:/sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT — true 1:1
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .channels-available {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-channels {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Routing Protocol</h1>
+    </header>
+
+    <main>
+        <section class="channels-available">
+            <h2>Routing protocols configured per router</h2>
+            <ul id="channelsbox" class="channels">
+                <!-- JavaScript will insert records here dynamically -->
+            </ul>
+        </section>
+
+        <aside id="add-channels" class="add-channels">
+            <h2>Configure Routing Protocol</h2>
+
+            <form class="form" id="add-routing-form">
+                <div class="filler">
+                    <p>
+                        <label for="site-id">Site ID (leave blank if need all L3 devices across all)</label>
+                        <input type="text" id="site-id" name="site-id"
+                               placeholder="e.g., site_0001">
+                    </p>
+                    <p>
+                        <label for="device-type">Device Layer</label>
+                        <input type="text" id="device-type" name="device-type"
+                               placeholder="default L3" value="L3" required>
+                    </p>
+
+                    <p>
+                        <label for="platform">Device Platform (leave blank if want all L3 devices)</label>
+                        <input type="text" id="platform" name="platform"
+                               placeholder="e.g., CISCO-IOS-XE">
+                    </p>
+                    <p>
+                        <label for="hostname">Hostname (if need a specific L3 device)</label>
+                        <input type="text" id="hostname" name="hostname"
+                               placeholder="e.g., NRB-RT-001">
+                    </p>
+
+                    <button type="button" id="loaddevices">Load Devices</button><br>
+                </div>
+
+                <div id="devicesbox"></div>
+
+                <button type="button" id="proceed" disabled>Proceed</button>
+
+                <div class="protocols" style="display:none">
+                    <br><h3>Choose Protocol To Configure</h3>
+                    <button type="button" id="static">Static Routing</button>
+                    <button type="button" id="ospf">OSPF Routing</button>
+                    <button type="button" id="bgp">BGP Routing</button><br>
+                </div>
+
+                <div class="fillset" style="display:none">
+                    <button type="button" id="configure">Configure Devices</button>
+                </div>
+
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        let devices = [];
+        const CheckedState = {};
+
+        /* ============================================================
+           LOAD DEVICES
+           ============================================================ */
+        document.getElementById("loaddevices").addEventListener("click", async function (event) {
+
+            event.preventDefault();
+
+            const site     = document.getElementById("site-id").value.trim();
+            const level    = document.getElementById("device-type").value.trim();
+            const platform = document.getElementById("platform").value.trim();
+            const hostname = document.getElementById("hostname").value.trim();
+            const qs = new URLSearchParams({ site, level, platform, hostname }).toString();
+
+            try {
+                const response = await fetch("api3.php?" + qs, { method: 'GET' });
+                if (!response.ok) {
+                    alert("error while trying to contact backend!!!👾👾");
+                    return;
+                }
+
+                const resp = await response.json();
+                if (resp.status === "error") {
+                    alert("👾👾 " + resp.message);
+                    return;
+                }
+
+                devices = resp.message;
+
+            } catch (err) {
+                alert("👾👾 " + err.message);
+                return;
+            }
+
+            const box = document.getElementById("devicesbox");
+            box.innerHTML = "";
+            Object.keys(CheckedState).forEach(k => delete CheckedState[k]);
+            document.getElementById("proceed").disabled = true;
+
+            devices.forEach(function (device) {
+                const wrap = document.createElement("fieldset");
+                const legend = document.createElement("legend");
+                legend.innerHTML = `
+                    <label><input type="checkbox" data-dev="${device.id}" class="device"> ${device.name} (${device.level})</label>
+                `;
+                wrap.appendChild(legend);
+                box.appendChild(wrap);
+            });
+
+        });
+
+        /* ============================================================
+           CHECKBOX TRACKING
+           ============================================================ */
+        document.getElementById("devicesbox").addEventListener("change", function (e) {
+            const t = e.target;
+            if (!t.classList.contains("device")) return;
+            const devid = +t.dataset.dev;
+
+            if (t.checked) CheckedState[devid] = true;
+            else delete CheckedState[devid];
+
+            document.getElementById("proceed").disabled = Object.keys(CheckedState).length === 0;
+        });
+
+        /* ============================================================
+           PROCEED — HIDE FILLER, SHOW PROTOCOL PICKER
+           ============================================================ */
+        document.getElementById("proceed").addEventListener("click", function () {
+            if (Object.keys(CheckedState).length === 0) {
+                alert("Please select at least one device first!");
+                return;
+            }
+
+            document.querySelector(".filler").style.display = "none";
+            document.querySelector(".protocols").style.display = "block";
+        });
+
+        /* ============================================================
+           STATIC FORM BUILDER
+           ============================================================ */
+        const btnStatic = document.getElementById("static");
+        btnStatic.addEventListener("click", function () {
+            const box = document.getElementById("fillset");
+            box.innerHTML = "";
+            Object.keys(CheckedState).forEach(function (devid) {
+                const device = devices.find(d => d.id == devid);
+                if (!device) return;
+
+                const wrap = document.createElement("fieldset");
+                wrap.classList.add("xyz");
+                const li = document.createElement("legend");
+                li.innerHTML = `
+                    <label><input type="text" data-dev="${device.id}" class="nexthopip" placeholder=" e.g. 192.168.100.1"> Next hop loopback </label>
+                    <label><input type="text" data-dev="${device.id}" class="nexthopint" placeholder=" e.g g0/0/1 "> Next hop Interface </label>
+                    <label><input type="text" data-dev="${device.id}" class="dest1" placeholder=" e.g 192.168.100.1 "> Destination Network (primary, with default AD) </label>
+                    <label><input type="text" data-dev="${device.id}" class="nexthop1" placeholder=" e.g 255.255.255.0" > Subnet Mask </label>
+                    <label><input type="text" data-dev="${device.id}" class="dest2" placeholder=" e.g 192.168.100.1 "> Destination Network (secondary) </label>
+                    <label><input type="text" data-dev="${device.id}" class="nexthop2" placeholder=" e.g 255.255.255.0" > Subnet Mask </label>
+                    <label><input type="text" data-dev="${device.id}" class="ad" placeholder=" e.g " > Administrative Distance (for floating static route(secondary)) </label>
+                `;
+                wrap.appendChild(li);
+                box.appendChild(wrap);
+            });
+
+            document.getElementById("fillset").style.display = "flex";
+        });
+
+        /* ============================================================
+           OSPF FORM BUILDER
+           ============================================================ */
+        const btnOspf = document.getElementById("ospf");
+        btnOspf.addEventListener("click", function () {
+            const box = document.getElementById("fillset");
+            box.innerHTML = "";
+            Object.keys(CheckedState).forEach(function (devid) {
+                const device = devices.find(d => d.id == devid);
+                if (!device) return;
+
+                const wrap = document.createElement("fieldset");
+                wrap.classList.add("xyz");
+                const li = document.createElement("legend");
+                li.innerHTML = `
+                    <label><input type="number" data-dev="${device.id}" class="processid" placeholder=" e.g. (ospf) 1 "> Process ID </label>
+                    <label><input type="text" data-dev="${device.id}" class="routerid" placeholder=" e.g (router) 1.1.1.1 "> Router ID </label>
+                    <label><input type="text" data-dev="${device.id}" class="network1" placeholder=" e.g 192.168.100.1 "> Network Statement 1</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard1" placeholder=" e.g 0.0.255.255" > Wildcard Mask 1</label>
+                    <label><input type="text" data-dev="${device.id}" class="network2" placeholder=" e.g 192.168.100.1 "> Network Statement 2 </label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard2" placeholder=" e.g 0.0.255.255" > Wildcard Mask 2</label>
+                    <label><input type="text" data-dev="${device.id}" class="network3" placeholder=" e.g 192.168.100.1 "> Network Statement 3</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard3" placeholder=" e.g 0.0.255.255" > Wildcard Mask 3</label>
+                    <label><input type="text" data-dev="${device.id}" class="network4" placeholder=" e.g 192.168.100.1 "> Network Statement 4</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard4" placeholder=" e.g 0.0.255.255" > Wildcard Mask 4</label>
+                    <label><input type="text" data-dev="${device.id}" class="network5" placeholder=" e.g 192.168.100.1 "> Network Statement 5</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard5" placeholder=" e.g 0.0.255.255" > Wildcard Mask 5</label>
+                    <label><input type="text" data-dev="${device.id}" class="network6" placeholder=" e.g 192.168.100.1 "> Network Statement 6</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard6" placeholder=" e.g 0.0.255.255" > Wildcard Mask 6</label>
+                    <label><input type="text" data-dev="${device.id}" class="network7" placeholder=" e.g 192.168.100.1 "> Network Statement 7</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard7" placeholder=" e.g 0.0.255.255" > Wildcard Mask 7</label>
+                    <label><input type="text" data-dev="${device.id}" class="network8" placeholder=" e.g 192.168.100.1 "> Network Statement 8</label>
+                    <label><input type="text" data-dev="${device.id}" class="wildcard8" placeholder=" e.g 0.0.255.255" > Wildcard Mask 8</label>
+                    <label><input type="text" data-dev="${device.id}" class="area" placeholder=" e.g (area) 0 " > Administrative Area </label>
+                `;
+                wrap.appendChild(li);
+                box.appendChild(wrap);
+            });
+
+            document.getElementById("fillset").style.display = "flex";
+        });
+
+        /* ============================================================
+           BGP FORM BUILDER
+           ============================================================ */
+        const btnBgp = document.getElementById("bgp");
+        btnBgp.addEventListener("click", function () {
+            const box = document.getElementById("fillset");
+            box.innerHTML = "";
+            Object.keys(CheckedState).forEach(function (devid) {
+                const device = devices.find(d => d.id == devid);
+                if (!device) return;
+
+                const wrap = document.createElement("fieldset");
+                wrap.classList.add("xyz");
+                const li = document.createElement("legend");
+                li.innerHTML = `
+                    <label><input type="number" data-dev="${device.id}" class="as1" placeholder=" e.g. private (64,512 - 65,535) "> Local Autonomous System Number </label>
+                    <label><input type="text" data-dev="${device.id}" class="as2" placeholder=" e.g private (64,512 - 65,535) "> Remote Autonomous Sys Number </label>
+                    <label><input type="text" data-dev="${device.id}" class="neighbor" placeholder=" e.g 192.168.100.1 "> Remote loopback IP </label>
+                    <label><input type="text" data-dev="${device.id}" class="md5" placeholder=" optional: md5 password "> MD5 Password (optional) </label>
+                    <br><label><input type="text" data-dev="${device.id}" class="source" placeholder=" e.g 10.10.10.1 " > Source Interface (loopback ip) </label></br>
+                    <label><input type="text" data-dev="${device.id}" class="network1" placeholder=" e.g 192.168.100.1 "> Network Statement </label>
+                    <label><input type="text" data-dev="${device.id}" class="mask1" placeholder=" e.g 255.255.255.0" > Subnet Mask </label>
+                    <label><input type="text" data-dev="${device.id}" class="network2" placeholder=" e.g 192.168.100.1 "> Network Statement 2 </label>
+                    <label><input type="text" data-dev="${device.id}" class="mask2" placeholder=" e.g 255.255.255.0" >Subnet Mask 2</label>
+                    <label><input type="text" data-dev="${device.id}" class="network3" placeholder=" e.g 192.168.100.1 "> Network Statement 3</label>
+                    <label><input type="text" data-dev="${device.id}" class="mask3" placeholder=" e.g 255.255.255.0" > Subnet Mask 3</label>
+                    <label><input type="text" data-dev="${device.id}" class="network4" placeholder=" e.g 192.168.100.1 "> Network Statement 4</label>
+                    <label><input type="text" data-dev="${device.id}" class="mask4" placeholder=" e.g 255.255.255.0" > Subnet Mask 4</label>
+                    <label><input type="text" data-dev="${device.id}" class="network5" placeholder=" e.g 192.168.100.1 "> Network Statement 5</label>
+                    <label><input type="text" data-dev="${device.id}" class="mask5" placeholder=" e.g 255.255.255.0" > Subnet Mask 5</label>
+                    <label><input type="text" data-dev="${device.id}" class="network6" placeholder=" e.g 192.168.100.1 "> Network Statement 6</label>
+                    <label><input type="text" data-dev="${device.id}" class="mask6" placeholder=" e.g 255.255.255.0" > Subnet Mask 6</label>
+                    <label><input type="text" data-dev="${device.id}" class="network7" placeholder=" e.g 192.168.100.1 "> Network Statement 7</label>
+                    <label><input type="text" data-dev="${device.id}" class="mask7" placeholder=" e.g 255.255.255.0" > Subnet Mask 7</label>
+                    <label><input type="text" data-dev="${device.id}" class="network8" placeholder=" e.g 192.168.100.1 "> Network Statement 8</label>
+                    <label><input type="text" data-dev="${device.id}" class="mask8" placeholder=" e.g 255.255.255.0" > Subnet Mask 8</label>
+                `;
+                wrap.appendChild(li);
+                box.appendChild(wrap);
+            });
+
+            document.getElementById("fillset").style.display = "flex";
+        });
+
+        /* ============================================================
+           CONFIGURE HANDLER
+           ============================================================ */
+        document.getElementById("configure").addEventListener("click", async function () {
+            const siteNo  = document.getElementById("site-id").value.trim();
+            const payload = [];
+
+            if (document.querySelectorAll(".nexthopip").length > 0) {
+                document.querySelectorAll(".nexthopip").forEach(function (dev) {
+                    const ip = dev.value.trim();
+                    const devid = +dev.dataset.dev;
+
+                    const intf  = document.querySelector(`.nexthopint[data-dev="${devid}"]`)?.value.trim() || "";
+                    const net1  = document.querySelector(`.dest1[data-dev="${devid}"]`)?.value.trim() || "";
+                    const mask1 = document.querySelector(`.nexthop1[data-dev="${devid}"]`)?.value.trim() || "";
+                    const net2  = document.querySelector(`.dest2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const mask2 = document.querySelector(`.nexthop2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const ad    = document.querySelector(`.ad[data-dev="${devid}"]`)?.value.trim() || "";
+
+                    const pay = {
+                        devid: devid,
+                        ip:    ip,
+                        intf:  intf,
+                        net1:  net1,
+                        mask1: mask1,
+                        net2:  net2,
+                        mask2: mask2,
+                        ad:    ad
+                    };
+
+                    payload.push(pay);
+                });
+            } else if (document.querySelectorAll(".routerid").length > 0) {
+                document.querySelectorAll(".routerid").forEach(function (dev) {
+                    const routerid = dev.value.trim();
+                    const devid = +dev.dataset.dev;
+
+                    const processid = document.querySelector(`.processid[data-dev="${devid}"]`)?.value.trim() || "";
+                    const area      = document.querySelector(`.area[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network1  = document.querySelector(`.network1[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard1 = document.querySelector(`.wildcard1[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network2  = document.querySelector(`.network2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard2 = document.querySelector(`.wildcard2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network3  = document.querySelector(`.network3[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard3 = document.querySelector(`.wildcard3[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network4  = document.querySelector(`.network4[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard4 = document.querySelector(`.wildcard4[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network5  = document.querySelector(`.network5[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard5 = document.querySelector(`.wildcard5[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network6  = document.querySelector(`.network6[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard6 = document.querySelector(`.wildcard6[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network7  = document.querySelector(`.network7[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard7 = document.querySelector(`.wildcard7[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network8  = document.querySelector(`.network8[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard8 = document.querySelector(`.wildcard8[data-dev="${devid}"]`)?.value.trim() || "";
+
+                    const pay = {
+                        devid:     devid,
+                        routerid:  routerid,
+                        processid: processid,
+                        area:      area,
+                        net1:      network1,
+                        mask1:     wildcard1,
+                        net2:      network2,
+                        mask2:     wildcard2,
+                        net3:      network3,
+                        mask3:     wildcard3,
+                        net4:      network4,
+                        mask4:     wildcard4,
+                        net5:      network5,
+                        mask5:     wildcard5,
+                        net6:      network6,
+                        mask6:     wildcard6,
+                        net7:      network7,
+                        mask7:     wildcard7,
+                        net8:      network8,
+                        mask8:     wildcard8
+                    };
+
+                    payload.push(pay);
+                });
+            } else if (document.querySelectorAll(".as1").length > 0) {
+                document.querySelectorAll(".as1").forEach(function (dev) {
+                    const as1 = dev.value.trim();
+                    const devid = +dev.dataset.dev;
+
+                    const as2    = document.querySelector(`.as2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const ip     = document.querySelector(`.neighbor[data-dev="${devid}"]`)?.value.trim() || "";
+                    const md5    = document.querySelector(`.md5[data-dev="${devid}"]`)?.value.trim() || "";
+                    const source = document.querySelector(`.source[data-dev="${devid}"]`)?.value.trim() || "";
+
+                    const network1  = document.querySelector(`.network1[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard1 = document.querySelector(`.mask1[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network2  = document.querySelector(`.network2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard2 = document.querySelector(`.mask2[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network3  = document.querySelector(`.network3[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard3 = document.querySelector(`.mask3[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network4  = document.querySelector(`.network4[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard4 = document.querySelector(`.mask4[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network5  = document.querySelector(`.network5[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard5 = document.querySelector(`.mask5[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network6  = document.querySelector(`.network6[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard6 = document.querySelector(`.mask6[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network7  = document.querySelector(`.network7[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard7 = document.querySelector(`.mask7[data-dev="${devid}"]`)?.value.trim() || "";
+                    const network8  = document.querySelector(`.network8[data-dev="${devid}"]`)?.value.trim() || "";
+                    const wildcard8 = document.querySelector(`.mask8[data-dev="${devid}"]`)?.value.trim() || "";
+
+                    const pay = {
+                        devid:  devid,
+                        as1:    as1,
+                        as2:    as2,
+                        ip:     ip,
+                        md5:    md5,
+                        source: source,
+                        net1:   network1,
+                        mask1:  wildcard1,
+                        net2:   network2,
+                        mask2:  wildcard2,
+                        net3:   network3,
+                        mask3:  wildcard3,
+                        net4:   network4,
+                        mask4:  wildcard4,
+                        net5:   network5,
+                        mask5:  wildcard5,
+                        net6:   network6,
+                        mask6:  wildcard6,
+                        net7:   network7,
+                        mask7:  wildcard7,
+                        net8:   network8,
+                        mask8:  wildcard8
+                    };
+
+                    payload.push(pay);
+                });
+            }
+
+            try {
+                const configuring = await fetch("api.php", {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!configuring.ok) {
+                    alert("error occurred while fetching backend!!👾👾");
+                    return;
+                }
+
+                const config = await configuring.json();
+                if (config.status === "error") {
+                    alert("👾👾 " + config.message);
+                    return;
+                }
+
+                alert("Configuration a success!!! ✔✔🎉");
+
+                document.getElementById("add-routing-form").reset();
+
+            } catch (err) {
+                alert("👾👾 " + err.message);
+                return;
+            }
+        });
+
+    </script>
+</body>
+</html>

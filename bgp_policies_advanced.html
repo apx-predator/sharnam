@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Routing Protocols</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT — true 1:1
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .channels-available {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-channels {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        input.invalid,
+        select.invalid {
+            border: 2px solid #e74c3c !important;
+            background-color: rgba(255, 220, 220, 0.95) !important;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================================
+           CONFIRMATION VIEW
+           ============================================================ */
+        .confirm-block {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .confirm-block h4 {
+            color: #00e5ff;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+            padding-bottom: 4px;
+        }
+
+        .confirm-block .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 2px 0;
+        }
+
+        .confirm-block .row span:first-child {
+            color: #aaa;
+            flex-shrink: 0;
+        }
+
+        .confirm-block .row span:last-child {
+            text-align: right;
+            overflow-wrap: break-word;
+            min-width: 0;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .confirm-actions button {
+            flex: 1;
+        }
+
+        .btn-back {
+            background-color: #888 !important;
+            color: white !important;
+        }
+
+        .btn-back:hover {
+            background-color: #666 !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Routing Protocol</h1>
+    </header>
+
+    <main>
+        <section class="channels-available">
+            <h2>Routing protocols configured per router</h2>
+            <ul id="channelsbox" class="channels">
+                <!-- JavaScript will insert records here dynamically -->
+            </ul>
+        </section>
+
+        <aside id="add-channels" class="add-channels">
+            <h2>Configure Routing Protocol</h2>
+
+            <form class="form" id="add-routing-form">
+                <div class="filler">
+                    <p>
+                        <label for="site-id">Site ID (leave blank if need all L3 devices across all)</label>
+                        <input type="text" id="site-id" name="site-id"
+                               placeholder="e.g., site_0001">
+                    </p>
+                    <p>
+                        <label for="device-type">Device Layer</label>
+                        <input type="text" id="device-type" name="device-type"
+                               placeholder="default L3" value="L3" required>
+                    </p>
+
+                    <p>
+                        <label for="platform">Device Platform (leave blank if want all L3 devices)</label>
+                        <input type="text" id="platform" name="platform"
+                               placeholder="e.g., CISCO-IOS-XE">
+                    </p>
+                    <p>
+                        <label for="hostname">Hostname (if need a specific L3 device)</label>
+                        <input type="text" id="hostname" name="hostname"
+                               placeholder="e.g., NRB-RT-001">
+                    </p>
+
+                    <button type="button" id="loaddevices">Load Devices</button><br>
+                </div>
+
+                <div id="devicesbox"></div>
+
+                <button type="button" id="proceed" disabled>Proceed</button>
+
+                <div class="fillset" style="display:none">
+                    <button type="button" id="configure">Configure Devices</button>
+                </div>
+
+                <div class="confirm" style="display:none"></div>
+
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        let devices = [];
+        const CheckedState = {};
+        let pendingPayload = [];
+
+        /* ============================================================
+           VALIDATION HELPERS
+           ============================================================ */
+        function isValidIPv4(str) {
+            if (!str) return false;
+            const parts = str.split('.');
+            if (parts.length !== 4) return false;
+            return parts.every(function (p) {
+                if (!/^\d+$/.test(p)) return false;
+                const n = +p;
+                return n >= 0 && n <= 255 && String(n) === p.replace(/^0+(?=\d)/, '');
+            });
+        }
+
+        function isValidCIDR(str) {
+            if (!str) return false;
+            const m = str.match(/^(.+)\/(\d{1,2})$/);
+            if (!m) return false;
+            const [, ip, prefix] = m;
+            const n = +prefix;
+            return isValidIPv4(ip) && n >= 0 && n <= 32;
+        }
+
+        function isValidAS(str) {
+            if (!str) return false;
+            if (!/^\d+$/.test(str)) return false;
+            const n = Number(str);
+            return Number.isInteger(n) && n >= 1 && n <= 4294967295;
+        }
+
+        // Community: <AS>:<value>  OR  <AS>:<AS>:<value> (extended)
+        function isValidCommunity(str) {
+            if (!str) return false;
+            return /^\d+:\d+$/.test(str) || /^\d+:\d+:\d+$/.test(str);
+        }
+
+        /* ============================================================
+           LOAD DEVICES
+           ============================================================ */
+        document.getElementById("loaddevices").addEventListener("click", async function (event) {
+
+            event.preventDefault();
+
+            const site     = document.getElementById("site-id").value.trim();
+            const level    = document.getElementById("device-type").value.trim();
+            const platform = document.getElementById("platform").value.trim();
+            const hostname = document.getElementById("hostname").value.trim();
+            const qs = new URLSearchParams({ site, level, platform, hostname }).toString();
+
+            try {
+                const response = await fetch("api3.php?" + qs, { method: 'GET' });
+                if (!response.ok) {
+                    alert("error while trying to contact backend!!!👾👾");
+                    return;
+                }
+
+                const resp = await response.json();
+                if (resp.status === "error") {
+                    alert("👾👾 " + resp.message);
+                    return;
+                }
+
+                devices = resp.message;
+
+            } catch (err) {
+                alert("👾👾 " + err.message);
+                return;
+            }
+
+            const box = document.getElementById("devicesbox");
+            box.innerHTML = "";
+            Object.keys(CheckedState).forEach(k => delete CheckedState[k]);
+            document.getElementById("proceed").disabled = true;
+
+            document.querySelector(".fillset").innerHTML = "";
+            document.querySelector(".fillset").style.display = "none";
+            document.querySelector(".confirm").style.display = "none";
+            document.querySelector(".confirm").innerHTML = "";
+            document.querySelector(".filler").style.display = "block";
+
+            devices.forEach(function (device) {
+                const wrap = document.createElement("fieldset");
+                const legend = document.createElement("legend");
+                legend.innerHTML = `
+                    <label><input type="checkbox" data-dev="${device.id}" class="device"> ${device.name} (${device.level})</label>
+                `;
+                wrap.appendChild(legend);
+                box.appendChild(wrap);
+            });
+
+        });
+
+        /* ============================================================
+           CHECKBOX TRACKING
+           ============================================================ */
+        document.getElementById("devicesbox").addEventListener("change", function (e) {
+            const t = e.target;
+            if (!t.classList.contains("device")) return;
+            const devid = +t.dataset.dev;
+
+            if (t.checked) CheckedState[devid] = true;
+            else delete CheckedState[devid];
+
+            document.getElementById("proceed").disabled = Object.keys(CheckedState).length === 0;
+        });
+
+        /* ============================================================
+           PROCEED — HIDE FILLER, BUILD BGP FORM
+           ============================================================ */
+        document.getElementById("proceed").addEventListener("click", function () {
+            if (Object.keys(CheckedState).length === 0) {
+                alert("Please select at least one device first!");
+                return;
+            }
+
+            document.querySelector(".filler").style.display = "none";
+
+            const box = document.querySelector(".fillset");
+            box.innerHTML = "";
+
+            Object.keys(CheckedState).forEach(function (devid) {
+                const device = devices.find(d => d.id == devid);
+                if (!device) return;
+
+                const wrap = document.createElement("fieldset");
+                wrap.classList.add("xyz");
+                const li = document.createElement("legend");
+                li.innerHTML = `
+                    <br><label><input type="text" data-dev="${device.id}" class="as1" placeholder=" e.g. 65001 "> Local/public AS Number </label>
+                    <label><input type="text" data-dev="${device.id}" class="as2" placeholder=" e.g  "> Neighbor AS number </label>
+                    <label><input type="text" data-dev="${device.id}" class="ip" placeholder=" e.g  "> neighbor IP </label></br>
+
+                    <br><label><input type="text" data-dev="${device.id}" class="blocks1" placeholder=" e.g 197.0.0.0/24 " > Permitted IP blocks to Advertise 1</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks2" placeholder=" e.g " > Permitted IP blocks to Advertise 2</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks3" placeholder=" e.g " > Permitted IP blocks to Advertise 3</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks4" placeholder=" e.g " > Permitted IP blocks to Advertise 4</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks5" placeholder=" e.g " > Permitted IP blocks to Advertise 5</label></br>
+
+                    <label><input type="number" data-dev="${device.id}" class="prepend" placeholder=" e.g (65001 65001 65001) = 3 "> Number Of times for Pre-pending </label>
+                    <label><input type="text" data-dev="${device.id}" class="preference" placeholder=" e.g " > Local Preference (higher is prefered, Default 100) </label>
+                    <label><input type="number" data-dev="${device.id}" class="maxprefix" placeholder=" e.g " value="8" > Max Prefix (for emergency flood scenario) </label>
+                    <label><input type="checkbox" data-dev="${device.id}" class="leak" value="1" > Outbound Route Prevention (uses permitted ip blocks) </label>
+                    <label><input type="checkbox" data-dev="${device.id}" class="flap" value="1" > Route Flap Dampening </label>
+                    <label><input type="checkbox" data-dev="${device.id}" class="bogon" value="1" > Bogons (Accept default route and barn non-public ips) </label>
+
+                    <fieldset style="background: rgba(0,0,0,0.3); border: 1px solid #00e5ff; padding: 10px; margin-top: 15px;">
+                        <legend style="color: #00e5ff; font-size: 0.8rem;">BGP Community Attribute Management</legend>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <p>
+                                <label>Add Egress Community Tag (Set):</label>
+                                <input type="text" class="policy-set-community" data-dev="${device.id}" placeholder="e.g., 65001:100">
+                            </p>
+                            <p>
+                                <label>Match Ingress Community Tag:</label>
+                                <input type="text" class="policy-match-community" data-dev="${device.id}" placeholder="e.g., 65002:500">
+                            </p>
+                        </div>
+
+                        <p>
+                            <label>Apply Well-Known Target Community Rule:</label>
+                            <select class="policy-well-known-community" data-dev="${device.id}">
+                                <option value="">-- No Standard Attribute Tag --</option>
+                                <option value="no-export">No-Export (Don't advertise outside local AS)</option>
+                                <option value="no-advertise">No-Advertise (Don't leak to any BGP peer)</option>
+                                <option value="local-as">Local-AS (Keep inside local confederation sub-AS)</option>
+                            </select>
+                        </p>
+                    </fieldset>
+                `;
+                wrap.appendChild(li);
+                box.appendChild(wrap);
+            });
+
+            box.style.display = "flex";
+        });
+
+        /* ============================================================
+           CONFIGURE — VALIDATE, THEN SHOW CONFIRMATION
+           ============================================================ */
+        document.getElementById("configure").addEventListener("click", function () {
+
+            document.querySelectorAll("input.invalid, select.invalid").forEach(function (el) {
+                el.classList.remove("invalid");
+            });
+
+            const errors = [];
+            const payload = [];
+
+            document.querySelectorAll(".as1").forEach(function (dev) {
+                const devid = +dev.dataset.dev;
+                const device = devices.find(d => d.id == devid);
+                const label = device ? device.name : ("Device " + devid);
+
+                const as1El        = dev;
+                const as2El        = document.querySelector(`.as2[data-dev="${devid}"]`);
+                const ipEl         = document.querySelector(`.ip[data-dev="${devid}"]`);
+                const blocksEls    = [1, 2, 3, 4, 5].map(i => document.querySelector(`.blocks${i}[data-dev="${devid}"]`));
+                const prependEl    = document.querySelector(`.prepend[data-dev="${devid}"]`);
+                const preferenceEl = document.querySelector(`.preference[data-dev="${devid}"]`);
+                const maxprefixEl  = document.querySelector(`.maxprefix[data-dev="${devid}"]`);
+                const leakEl       = document.querySelector(`.leak[data-dev="${devid}"]`);
+                const flapEl       = document.querySelector(`.flap[data-dev="${devid}"]`);
+                const bogonEl      = document.querySelector(`.bogon[data-dev="${devid}"]`);
+                const setCommEl    = document.querySelector(`.policy-set-community[data-dev="${devid}"]`);
+                const matchCommEl  = document.querySelector(`.policy-match-community[data-dev="${devid}"]`);
+                const wellKnownEl  = document.querySelector(`.policy-well-known-community[data-dev="${devid}"]`);
+
+                const as1        = as1El ? as1El.value.trim() : "";
+                const as2        = as2El ? as2El.value.trim() : "";
+                const ip         = ipEl ? ipEl.value.trim() : "";
+                const blocks     = blocksEls.map(el => el ? el.value.trim() : "");
+                const prepend    = prependEl ? prependEl.value.trim() : "";
+                const preference = preferenceEl ? preferenceEl.value.trim() : "";
+                const maxprefix  = maxprefixEl ? maxprefixEl.value.trim() : "";
+                const leak       = leakEl && leakEl.checked ? 1 : 0;
+                const flap       = flapEl && flapEl.checked ? 1 : 0;
+                const bogon      = bogonEl && bogonEl.checked ? 1 : 0;
+                const setComm    = setCommEl ? setCommEl.value.trim() : "";
+                const matchComm  = matchCommEl ? matchCommEl.value.trim() : "";
+                const wellKnown  = wellKnownEl ? wellKnownEl.value : "";
+
+                // ---- Required fields ----
+                if (!as1) {
+                    errors.push(`${label}: Local AS is required`);
+                    if (as1El) as1El.classList.add("invalid");
+                } else if (!isValidAS(as1)) {
+                    errors.push(`${label}: Local AS must be a number between 1 and 4294967295`);
+                    if (as1El) as1El.classList.add("invalid");
+                }
+
+                if (!as2) {
+                    errors.push(`${label}: Neighbor AS is required`);
+                    if (as2El) as2El.classList.add("invalid");
+                } else if (!isValidAS(as2)) {
+                    errors.push(`${label}: Neighbor AS must be a number between 1 and 4294967295`);
+                    if (as2El) as2El.classList.add("invalid");
+                }
+
+                if (!ip) {
+                    errors.push(`${label}: Neighbor IP is required`);
+                    if (ipEl) ipEl.classList.add("invalid");
+                } else if (!isValidIPv4(ip)) {
+                    errors.push(`${label}: Neighbor IP "${ip}" is not a valid IPv4 address`);
+                    if (ipEl) ipEl.classList.add("invalid");
+                }
+
+                // ---- Optional fields ----
+                blocksEls.forEach(function (el, i) {
+                    const val = el ? el.value.trim() : "";
+                    if (val && !isValidCIDR(val)) {
+                        errors.push(`${label}: Advertised block ${i + 1} "${val}" is not a valid CIDR (e.g. 197.0.0.0/24)`);
+                        if (el) el.classList.add("invalid");
+                    }
+                });
+
+                if (prepend !== "") {
+                    if (!/^\d+$/.test(prepend) || +prepend < 0 || +prepend > 10) {
+                        errors.push(`${label}: Prepend count must be a number 0–10`);
+                        if (prependEl) prependEl.classList.add("invalid");
+                    }
+                }
+
+                if (preference !== "") {
+                    if (!/^\d+$/.test(preference) || +preference < 0 || +preference > 4294967295) {
+                        errors.push(`${label}: Local Preference must be a number 0–4294967295`);
+                        if (preferenceEl) preferenceEl.classList.add("invalid");
+                    }
+                }
+
+                if (maxprefix !== "") {
+                    if (!/^\d+$/.test(maxprefix) || +maxprefix < 1 || +maxprefix > 2147483647) {
+                        errors.push(`${label}: Max Prefix must be a number 1–2147483647`);
+                        if (maxprefixEl) maxprefixEl.classList.add("invalid");
+                    }
+                }
+
+                // ---- Community validation ----
+                if (setComm !== "" && !isValidCommunity(setComm)) {
+                    errors.push(`${label}: Egress community "${setComm}" must match AS:value or AS:AS:value`);
+                    if (setCommEl) setCommEl.classList.add("invalid");
+                }
+
+                if (matchComm !== "" && !isValidCommunity(matchComm)) {
+                    errors.push(`${label}: Ingress community "${matchComm}" must match AS:value or AS:AS:value`);
+                    if (matchCommEl) matchCommEl.classList.add("invalid");
+                }
+
+                payload.push({
+                    devid:        devid,
+                    name:         label,
+                    as1:          as1,
+                    as2:          as2,
+                    ip:           ip,
+                    blocks1:      blocks[0],
+                    blocks2:      blocks[1],
+                    blocks3:      blocks[2],
+                    blocks4:      blocks[3],
+                    blocks5:      blocks[4],
+                    prepend:      prepend,
+                    preference:   preference,
+                    maxprefix:    maxprefix,
+                    leak:         leak,
+                    flap:         flap,
+                    bogon:        bogon,
+                    set_comm:     setComm,
+                    match_comm:   matchComm,
+                    well_known:   wellKnown
+                });
+            });
+
+            if (payload.length === 0) {
+                alert("No devices to configure.");
+                return;
+            }
+
+            if (errors.length > 0) {
+                alert("Please fix the following before continuing:\n\n• " + errors.join("\n• "));
+                const firstInvalid = document.querySelector("input.invalid, select.invalid");
+                if (firstInvalid) firstInvalid.focus();
+                return;
+            }
+
+            pendingPayload = payload;
+
+            const confirmBox = document.querySelector(".confirm");
+            let html = `<h2 style="margin-bottom:15px;">Confirm BGP Configuration</h2>`;
+
+            payload.forEach(function (p) {
+                const blocks = [p.blocks1, p.blocks2, p.blocks3, p.blocks4, p.blocks5]
+                    .filter(b => b !== "").join(", ") || "—";
+
+                const wellKnownLabel = p.well_known === "no-export"     ? "No-Export"
+                                     : p.well_known === "no-advertise"  ? "No-Advertise"
+                                     : p.well_known === "local-as"      ? "Local-AS"
+                                     : "—";
+
+                html += `
+                    <div class="confirm-block">
+                        <h4>${p.name} (ID: ${p.devid})</h4>
+                        <div class="row"><span>Local AS:</span><span>${p.as1}</span></div>
+                        <div class="row"><span>Neighbor AS:</span><span>${p.as2}</span></div>
+                        <div class="row"><span>Neighbor IP:</span><span>${p.ip}</span></div>
+                        <div class="row"><span>Advertised Blocks:</span><span>${blocks}</span></div>
+                        <div class="row"><span>Prepend Count:</span><span>${p.prepend || "—"}</span></div>
+                        <div class="row"><span>Local Preference:</span><span>${p.preference || "—"}</span></div>
+                        <div class="row"><span>Max Prefix:</span><span>${p.maxprefix || "—"}</span></div>
+                        <div class="row"><span>Outbound Prevention:</span><span>${p.leak ? "Yes" : "No"}</span></div>
+                        <div class="row"><span>Flap Dampening:</span><span>${p.flap ? "Yes" : "No"}</span></div>
+                        <div class="row"><span>Bogons:</span><span>${p.bogon ? "Yes" : "No"}</span></div>
+                        <div class="row"><span>Egress Community:</span><span>${p.set_comm || "—"}</span></div>
+                        <div class="row"><span>Ingress Community:</span><span>${p.match_comm || "—"}</span></div>
+                        <div class="row"><span>Well-Known Community:</span><span>${wellKnownLabel}</span></div>
+                    </div>
+                `;
+            });
+
+            html += `
+                <div class="confirm-actions">
+                    <button type="button" class="btn-back" id="backbtn">← Go Back &amp; Edit</button>
+                    <button type="button" id="applybtn">✓ Confirm &amp; Configure</button>
+                </div>
+            `;
+
+            confirmBox.innerHTML = html;
+            document.querySelector(".fillset").style.display = "none";
+            confirmBox.style.display = "block";
+
+            document.getElementById("backbtn").addEventListener("click", function () {
+                confirmBox.style.display = "none";
+                confirmBox.innerHTML = "";
+                document.querySelector(".fillset").style.display = "flex";
+            });
+
+            document.getElementById("applybtn").addEventListener("click", async function () {
+                const applyBtn = this;
+                applyBtn.disabled = true;
+                applyBtn.textContent = "Applying…";
+
+                try {
+                    const configuring = await fetch("api.php", {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(pendingPayload)
+                    });
+
+                    if (!configuring.ok) {
+                        alert("error occurred while fetching backend!!👾👾");
+                        applyBtn.disabled = false;
+                        applyBtn.textContent = "✓ Confirm & Configure";
+                        return;
+                    }
+
+                    const config = await configuring.json();
+                    if (config.status === "error") {
+                        alert("👾👾 " + config.message);
+                        applyBtn.disabled = false;
+                        applyBtn.textContent = "✓ Confirm & Configure";
+                        return;
+                    }
+
+                    alert("Configuration a success!!! ✔✔🎉");
+
+                    pendingPayload = [];
+                    document.getElementById("add-routing-form").reset();
+                    document.getElementById("devicesbox").innerHTML = "";
+                    document.querySelector(".fillset").innerHTML = "";
+                    document.querySelector(".fillset").style.display = "none";
+                    confirmBox.innerHTML = "";
+                    confirmBox.style.display = "none";
+                    document.querySelector(".filler").style.display = "block";
+                    document.getElementById("proceed").disabled = true;
+                    Object.keys(CheckedState).forEach(k => delete CheckedState[k]);
+
+                } catch (err) {
+                    alert("👾👾 " + err.message);
+                    applyBtn.disabled = false;
+                    applyBtn.textContent = "✓ Confirm & Configure";
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>

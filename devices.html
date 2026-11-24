@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Devices</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .devices-available {
+            flex: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-device {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           SELECT DROPDOWN
+           ============================================================ */
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Devices</h1>
+    </header>
+
+    <main>
+        <section class="devices-available">
+            <h2>Available Devices</h2>
+            <ul id="devices" class="devices">
+                <!-- JavaScript will insert device rows here -->
+            </ul>
+        </section>
+
+        <aside class="add-device">
+            <h2>Add Device</h2>
+            <form class="form" id="add-device-form">
+
+                <!-- Device Type (radio group) -->
+                <fieldset>
+                    <legend>Device Type</legend>
+                    <label>
+                        <input type="radio" name="device-type" value="router" required>
+                        Router
+                    </label>
+                    <label>
+                        <input type="radio" name="device-type" value="switch">
+                        Switch
+                    </label>
+                    <label>
+                        <input type="radio" name="device-type" value="firewall">
+                        Firewall
+                    </label>
+                </fieldset>
+
+                <!-- Device Role (select) -->
+                <p>
+                    <select id="device-role" name="device-role">
+                        <option value="">--- Device Roles ---</option>
+                        <option value="core">Core Switch</option>
+                        <option value="dist">Distribution Switch</option>
+                        <option value="access">Access Switch</option>
+                    </select>
+                </p>
+
+                <!-- Device Platform (radio group) -->
+                <fieldset>
+                    <legend>Device Platform</legend>
+                    <label>
+                        <input type="radio" name="device-platform" value="cisco-ios-xe" required>
+                        CISCO-IOS-XE
+                    </label>
+                    <label>
+                        <input type="radio" name="device-platform" value="juniper-junos">
+                        JUNIPER-JUNOS
+                    </label>
+                    <label>
+                        <input type="radio" name="device-platform" value="huawei-vrp">
+                        HUAWEI VRP
+                    </label>
+                </fieldset>
+
+                <!-- Hostname -->
+                <p>
+                    <label for="device-name">Hostname</label>
+                    <input type="text" id="device-name" name="device-name"
+                           placeholder="hq-RT-001" required>
+                </p>
+
+                <!-- Management IP -->
+                <p>
+                    <label for="management-ip">Management IP</label>
+                    <input type="text" id="management-ip" name="management-ip"
+                           placeholder="192.168.100.1" required>
+                </p>
+
+                <!-- Site ID -->
+                <p>
+                    <label for="site-id">Site ID</label>
+                    <input type="text" id="site-id" name="site-id"
+                           placeholder="site_001" required>
+                </p>
+
+                <button type="submit">Add Device</button>
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        /* ============================================================
+           ADD DEVICE TO DATABASE
+           ============================================================ */
+        const deviceForm = document.getElementById("add-device-form");
+
+        deviceForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // Read input values
+            const type        = document.querySelector('input[name="device-type"]:checked')?.value || "";
+            const role        = document.getElementById("device-role").value.trim();
+            const platform    = document.querySelector('input[name="device-platform"]:checked')?.value || "";
+            const hostname    = document.getElementById("device-name").value.trim();
+            const management  = document.getElementById("management-ip").value.trim();
+            const site        = document.getElementById("site-id").value.trim();
+
+            // Basic client-side validation
+            if (!type || !platform || !hostname || !management || !site) {
+                alert("Please fill in all required fields before submitting.");
+                return;
+            }
+
+            const device = {
+                type: type,
+                role: role,
+                platform: platform,
+                hostname: hostname,
+                management_ip: management,
+                site_id: site
+            };
+
+            try {
+                const response = await fetch("api2.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(device)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to communicate to backend!!");
+                }
+
+                const result = await response.json();
+
+                if (result.status === "error") {
+                    throw new Error("Error occurred while trying to add the device: " + result.message);
+                }
+
+                alert("Device added successfully! ✔✔🎉");
+                deviceForm.reset();
+                loadDevices();
+
+            } catch (error) {
+                alert("Error: " + error.message);
+            }
+        });
+
+        /* ============================================================
+           LOAD DEVICES FROM BACKEND
+           ============================================================ */
+        const devicesList = document.getElementById("devices");
+
+        async function loadDevices() {
+            try {
+                const response = await fetch("api2.php");
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to talk to backend!!!");
+                }
+
+                const res = await response.json();
+
+                if (res.status === "error") {
+                    throw new Error("Error while reading the devices: " + res.message);
+                }
+
+                devicesList.innerHTML = "";
+
+                res.devices.forEach(function (device) {
+                    const li = document.createElement("li");
+                    li.className = "devices-list";
+                    li.style.listStyle = "none";
+                    li.style.marginBottom = "15px";
+                    li.style.padding = "10px";
+                    li.style.backgroundColor = "rgba(255,255,255,0.05)";
+                    li.style.borderRadius = "5px";
+
+                    li.innerHTML = `
+                        <div style="margin-bottom: 8px;">
+                            <strong>device_id:</strong>
+                            <span class="txt-device-id">${device.device_id}</span><br>
+
+                            <strong>site_id:</strong>
+                            <span class="txt-site-id">${device.site_id}</span><br>
+
+                            <strong>device_type:</strong>
+                            <span class="txt-type">${device.device_type}</span><br>
+
+                            <strong>device_role:</strong>
+                            <span class="txt-role">${device.device_role}</span><br>
+
+                            <strong>platform:</strong>
+                            <span class="txt-platform">${device.platform}</span><br>
+
+                            <strong>hostname:</strong>
+                            <span class="txt-hostname">${device.hostname}</span><br>
+
+                            <strong>management_ip:</strong>
+                            <span class="txt-mgmt-ip">${device.management_ip}</span><br>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                            <button class="btn-delete"
+                                    style="background: #e74c3c; color: white; padding: 4px 10px;
+                                           font-size: 12px; width: auto; margin: 0; border: none;
+                                           border-radius: 3px; cursor: pointer;">
+                                Remove
+                            </button>
+                        </div>
+                    `;
+
+                    devicesList.appendChild(li);
+
+                    // Hook up delete listener for this specific item
+                    const delBtn = li.querySelector(".btn-delete");
+
+                    delBtn.addEventListener("click", async function () {
+                        if (!confirm(`Are you sure you want to remove device ${device.hostname}?`)) {
+                            return;
+                        }
+
+                        try {
+                            const deleting = await fetch("api2.php", {
+                                method: "DELETE",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ id: device.device_id })
+                            });
+
+                            if (!deleting.ok) {
+                                throw new Error("Error while trying to talk to the backend!!!");
+                            }
+
+                            const delRes = await deleting.json();
+
+                            if (delRes.status === "error") {
+                                throw new Error("Error while deleting device: " + delRes.message);
+                            }
+
+                            if (delRes.status === "success") {
+                                alert("Device removed successfully! ✔");
+                            }
+
+                            loadDevices();
+
+                        } catch (err) {
+                            alert("Deletion error: " + err.message);
+                        }
+                    });
+                });
+
+            } catch (err) {
+                console.error("Fetch operational error:", err.message);
+            }
+        }
+
+        /* ============================================================
+           INITIAL LOAD + AUTO-SYNC LOOP
+           ============================================================ */
+        loadDevices();
+        setInterval(loadDevices, 10000);
+    </script>
+</body>
+</html>

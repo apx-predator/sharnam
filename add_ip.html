@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Interface IPs</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('file:///D:/sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT — true 1:1
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .channels-available {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-channels {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Interface IPs</h1>
+    </header>
+
+    <main>
+        <section class="channels-available">
+            <h2>Int Assigned IPs</h2>
+            <ul id="channelsbox" class="channels">
+                <!-- JavaScript will insert interface IP records here dynamically -->
+            </ul>
+        </section>
+
+        <aside id="add-channels" class="add-channels">
+            <h2>Add Interface IPs</h2>
+
+            <form class="form" id="add-channel-form">
+                <div class="filler">
+                    <p>
+                        <label for="site-id">Site ID</label>
+                        <input type="text" id="site-id" name="site-id"
+                               placeholder="e.g., site_0001" required>
+                    </p>
+                    <p>
+                        <label for="device-type">Device Type</label>
+                        <input type="text" id="device-type" name="device-type"
+                               placeholder="e.g., switch, router" required>
+                    </p>
+                    <p>
+                        <label for="device-role">Device Role</label>
+                        <input type="text" id="device-role" name="device-role"
+                               placeholder="e.g., core, distribution, access">
+                    </p>
+                    <p>
+                        <label for="platform">Device Platform</label>
+                        <input type="text" id="platform" name="platform"
+                               placeholder="e.g., CISCO-IOS-XE">
+                    </p>
+                    <p>
+                        <label for="hostname">Hostname</label>
+                        <input type="text" id="hostname" name="hostname"
+                               placeholder="e.g., NRB-RT-001">
+                    </p>
+
+                    <button type="button" id="loaddevices">Load Devices</button>
+                    <div id="devicesbox"></div>
+                    <button type="button" id="proceed" disabled>Proceed</button>
+                </div>
+
+                <div id="fillset" style="display:none">
+                    <div id="perdevicebox"></div>
+                    <button type="button" id="configure">Configure IPs</button>
+                </div>
+
+                <input type="hidden" id="site_no_hidden" name="site_no_hidden">
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        let devices = [];
+        const CheckedState = {};
+
+        /* ============================================================
+           Phase 1: LOAD DEVICES
+           ============================================================ */
+        document.getElementById("loaddevices").addEventListener("click", async function (event) {
+            event.preventDefault();
+
+            const site     = document.getElementById('site-id').value.trim();
+            const type     = document.getElementById('device-type').value.trim();
+            const role     = document.getElementById('device-role').value.trim();
+            const platform = document.getElementById('platform').value.trim();
+            const hostname = document.getElementById('hostname').value.trim();
+
+            const qs = new URLSearchParams({ site, type, role, platform, hostname }).toString();
+
+            try {
+                const response = await fetch("api3.php?" + qs, { method: 'GET' });
+                if (!response.ok) {
+                    alert("error while trying to fetch database!!!👾👾");
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.status === "error") {
+                    alert(data.message);
+                    return;
+
+                } else if (data.status === "success") {
+                    devices = data.message || [];
+                }
+
+                const box = document.getElementById("devicesbox");
+                box.innerHTML = "";
+
+                devices.forEach(function (device) {
+                    CheckedState[device.id] = new Set();
+
+                    const wrap = document.createElement("fieldset");
+                    const l    = document.createElement("legend");
+                    l.innerHTML = `
+                        <label><input type="checkbox" class="dev-chk" data-dev="${device.id}">
+                        ${device.name} (${device.type || ''})</label>
+                    `;
+                    wrap.appendChild(l);
+
+                    if (device.interfaces) {
+                        device.interfaces.forEach(function (iface) {
+                            const labelEl = document.createElement("label");
+                            labelEl.style.display = "block";
+                            labelEl.innerHTML = `
+                                <input type="checkbox" class="if-chk" data-dev="${device.id}" data-if="${iface.id}"> ${iface.name}
+                            `;
+                            wrap.appendChild(labelEl);
+                        });
+                    }
+
+                    box.appendChild(wrap);
+                });
+
+                if (devices.length > 0) {
+                    document.getElementById("proceed").disabled = false;
+                }
+
+            } catch (err) {
+                alert("Fetch failed: " + err.message);
+            }
+        });
+
+        /* ============================================================
+           Phase 2: CHECKBOX STATE TRACKING
+           ============================================================ */
+        document.getElementById("devicesbox").addEventListener("change", function (e) {
+            const t     = e.target;
+            const devid = +t.dataset.dev;
+
+            if (t.classList.contains("dev-chk")) {
+                document.querySelectorAll(`.if-chk[data-dev="${devid}"]`).forEach(function (k) {
+                    k.checked = t.checked;
+
+                    if (t.checked) {
+                        CheckedState[devid].add(+k.dataset.if);
+                    } else {
+                        CheckedState[devid].delete(+k.dataset.if);
+                    }
+                });
+
+            } else if (t.classList.contains("if-chk")) {
+                const ifid = +t.dataset.if;
+
+                if (t.checked) {
+                    CheckedState[devid].add(ifid);
+                } else {
+                    CheckedState[devid].delete(ifid);
+                }
+
+                const parent = document.querySelector(`.dev-chk[data-dev="${devid}"]`);
+                if (parent) {
+                    parent.checked = CheckedState[devid].size > 0;
+                }
+            }
+        });
+
+        /* ============================================================
+           Phase 3.1: PROCEED — BUILD PER-DEVICE / PER-INTERFACE IP BLOCKS
+           ============================================================ */
+        document.getElementById("proceed").addEventListener("click", function () {
+            document.getElementById("site_no_hidden").value =
+                document.getElementById("site-id").value.trim();
+
+            const selected = devices
+                .filter(function (device) {
+                    return CheckedState[device.id] && CheckedState[device.id].size > 0;
+                })
+                .map(function (device) {
+                    const onlycheckedports = device.interfaces.filter(function (iface) {
+                        return CheckedState[device.id].has(iface.id);
+                    });
+                    return {
+                        ...device,
+                        interfaces: onlycheckedports
+                    };
+                });
+
+            document.getElementById("fillset").style.display = "block";
+            document.querySelector(".filler").style.display   = "none";
+
+            const perbox = document.getElementById("perdevicebox");
+            perbox.innerHTML = '';
+
+            selected.forEach(function (device) {
+                const wrap = document.createElement("div");
+                wrap.className = "device-config-block";
+                wrap.style.border = "1px solid #ccc";
+                wrap.style.padding = "15px";
+                wrap.style.marginBottom = "20px";
+                wrap.style.borderRadius = "5px";
+
+                // One fieldset per selected interface
+                device.interfaces.forEach(function (intf) {
+                    const l = document.createElement("fieldset");
+                    l.style.marginBottom = "10px";
+
+                    const li = document.createElement("legend");
+                    li.textContent = `Interface configuration: ${intf.name}`;
+                    l.appendChild(li);
+
+                    const bodyWrap = document.createElement("div");
+                    bodyWrap.innerHTML = `
+                        <p style="margin-bottom: 5px;">
+                            <label>IP Address:</label>
+                            <input type="text" class="ipaddr"
+                                   data-dev="${device.id}" data-if="${intf.id}"
+                                   placeholder="e.g., 192.168.100.1">
+                        </p>
+                        <p style="margin-bottom: 5px;">
+                            <label>Subnet Mask:</label>
+                            <input type="text" class="mask"
+                                   data-dev="${device.id}" data-if="${intf.id}"
+                                   placeholder="e.g., 255.255.255.0">
+                        </p>
+                        <p style="margin-bottom: 5px;">
+                            <label>Status:</label>
+                            <input type="text" class="status"
+                                   data-dev="${device.id}" data-if="${intf.id}"
+                                   placeholder="e.g., up or down">
+                        </p>
+                    `;
+                    l.appendChild(bodyWrap);
+                    wrap.appendChild(l);
+                });
+
+                perbox.appendChild(wrap);
+            });
+        });
+
+        /* ============================================================
+           Phase 3.2: CONFIGURE — SEND IP ASSIGNMENTS
+           ============================================================ */
+        document.getElementById("configure").addEventListener("click", async function () {
+            const siteNo  = document.getElementById("site_no_hidden").value;
+            const payload = [];
+
+            document.querySelectorAll(".ipaddr").forEach(function (intf) {
+                const devid = intf.dataset.dev;
+                const ifid  = intf.dataset.if;
+                const ip    = intf.value.trim();
+
+                if (!ip) return; // skip empty rows
+
+                // Grab sibling inputs for this specific device/interface pair
+                const maskInput   = document.querySelector(`.mask[data-dev="${devid}"][data-if="${ifid}"]`);
+                const statusInput = document.querySelector(`.status[data-dev="${devid}"][data-if="${ifid}"]`);
+
+                const subnet = maskInput   ? maskInput.value.trim()   : "";
+                const status = statusInput ? statusInput.value.trim() : "";
+
+                payload.push({
+                    site_no:      siteNo,
+                    device_id:    devid,
+                    interface_id: ifid,
+                    ip:           ip,
+                    mask:         subnet,
+                    status:       status
+                });
+            });
+
+            if (payload.length === 0) {
+                alert("Please provision an IP address for at least one interface!");
+                return;
+            }
+
+            try {
+                const sending = await fetch("api.php", {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!sending.ok) {
+                    alert("error while fetching backend!!!👾👾");
+                    return;
+                }
+
+                const receive = await sending.json();
+                if (receive.status === "error") {
+                    alert("👾👾 " + receive.message);
+                    return;
+                }
+
+                alert("configuration a success !!!✔✔🎉");
+
+                // Reset everything cleanly back to Step 1
+                document.getElementById("add-channel-form").reset();
+                document.getElementById("devicesbox").innerHTML   = "";
+                document.getElementById("perdevicebox").innerHTML = "";
+                document.getElementById("fillset").style.display  = "none";
+                document.querySelector(".filler").style.display   = "block";
+                document.getElementById("proceed").disabled       = true;
+
+                Object.keys(CheckedState).forEach(k => delete CheckedState[k]);
+
+                // Refresh the left-hand list so the new assignment appears immediately
+                loadAssignedIPs();
+
+            } catch (err) {
+                alert("👾👾 " + err.message);
+            }
+        });
+
+        /* ============================================================
+           Phase 4: LIVE REFRESH & INTERFACE IP UNPROVISIONING (DELETE)
+           ============================================================ */
+
+        // 1. STANDALONE IP SYNCHRONIZATION FUNCTION
+        async function loadAssignedIPs() {
+            const box = document.getElementById("channelsbox");
+
+            if (!box.innerHTML.trim()) {
+                box.innerHTML = "<em>Syncing network interface parameters...</em>";
+            }
+
+            try {
+                const response = await fetch("api.php?action=get_assigned_ips", { method: 'GET' });
+
+                if (!response.ok) {
+                    console.error("API Link Error: Active profiles dropped.");
+                    return;
+                }
+
+                const data = await response.json();
+                if (data.status === "error") {
+                    box.innerHTML = `<em>Sync Failed: ${data.message}</em>`;
+                    return;
+                }
+
+                box.innerHTML = "";
+                const records = Array.isArray(data.message) ? data.message : [];
+
+                if (records.length === 0) {
+                    box.innerHTML = "<em>No statically provisioned IP addresses found.</em>";
+                    return;
+                }
+
+                records.forEach(function (device) {
+                    const devWrap = document.createElement("div");
+                    devWrap.className = "device-ip-group";
+                    devWrap.style.background = "rgba(255, 255, 255, 0.05)";
+                    devWrap.style.border = "1px solid rgba(255, 255, 255, 0.1)";
+                    devWrap.style.padding = "12px";
+                    devWrap.style.marginBottom = "15px";
+                    devWrap.style.borderRadius = "6px";
+
+                    let htmlContent = `
+                        <h4 style="color: #00e5ff; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px;">
+                            ${device.device_name} (ID: ${device.device_id})
+                        </h4>
+                    `;
+
+                    if (device.interfaces && device.interfaces.length > 0) {
+                        device.interfaces.forEach(function (intf) {
+                            htmlContent += `
+                                <div class="ip-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; padding: 4px 0;">
+                                    <div style="font-size: 0.9rem; min-width: 0; overflow-wrap: break-word;">
+                                        <strong>${intf.name}</strong>: ${intf.ip}
+                                        <span style="color: #aaa; margin-left: 5px;">[${intf.status || 'down'}]</span>
+                                    </div>
+                                    <button type="button" class="remove-ip-btn"
+                                            data-dev-id="${device.device_id}"
+                                            data-intf-id="${intf.id}"
+                                            data-ip="${intf.ip}"
+                                            data-mask="${intf.mask || ''}"
+                                            style="background: #e74c3c; color: white; padding: 4px 8px;
+                                                   cursor: pointer; border: none; border-radius: 3px;
+                                                   font-size: 0.8rem; width: auto; flex-shrink: 0;">
+                                        Remove IP ✕
+                                    </button>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        htmlContent += `<em style="font-size: 0.85rem; color: #888;">No active interface allocations.</em>`;
+                    }
+
+                    devWrap.innerHTML = htmlContent;
+                    box.appendChild(devWrap);
+                });
+
+            } catch (err) {
+                console.error("Network Background Tracking Failure: ", err);
+            }
+        }
+
+        // 2. RUN SCHEDULERS (immediate + 30s loop)
+        document.addEventListener("DOMContentLoaded", function () {
+            loadAssignedIPs();
+            setInterval(loadAssignedIPs, 30000);
+        });
+
+        // 3. SEPARATED UNPROVISIONING ACTION HANDLER (uses HTTP DELETE)
+        document.getElementById("channelsbox").addEventListener("click", async function (e) {
+            if (e.target.classList.contains("remove-ip-btn")) {
+
+                if (!confirm("Are you sure you want to completely unconfigure and drop this static IP allocation?")) {
+                    return;
+                }
+
+                const button = e.target;
+
+                const unconfigPayload = {
+                    device_id:    button.dataset.devId,
+                    interface_id: button.dataset.intfId,
+                    ip:           button.dataset.ip,
+                    subnetmask:   button.dataset.mask
+                };
+
+                try {
+                    const sending = await fetch("api.php", {
+                        method: 'DELETE',
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(unconfigPayload)
+                    });
+
+                    if (!sending.ok) {
+                        alert("Unconfiguration endpoint validation handshake failed on server engine. 👾");
+                        return;
+                    }
+
+                    const res = await sending.json();
+
+                    if (res.status === "error") {
+                        alert("Interface IP Drop Blocked: " + res.message);
+                        return;
+                    }
+
+                    alert("Static IP unconfigured successfully! (no ip assignment issued) 🗑️✨");
+
+                    // Instantly re-fire our load logic to refresh dashboard values seamlessly
+                    loadAssignedIPs();
+
+                } catch (err) {
+                    alert("Network Error encountered during interface tracking drop: " + err.message);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

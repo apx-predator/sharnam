@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM IP Addresses</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .ips-available {
+            flex: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-ip {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+
+        /* ============================================================
+           RENDERED DEVICE / INTERFACE STYLING
+           ============================================================ */
+        .ip-device {
+            list-style: none;
+            margin-bottom: 18px;
+            padding: 14px;
+            background-color: rgba(255, 255, 255, 0.06);
+            border-radius: 6px;
+            border-left: 4px solid #00e5ff;
+        }
+
+        .device-header {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .iface-block {
+            margin: 8px 0 8px 16px;
+            padding: 8px 10px;
+            background-color: rgba(0, 0, 0, 0.25);
+            border-radius: 4px;
+            border-left: 3px solid #27ae60;
+        }
+
+        .iface-block .iface-title {
+            color: #00e5ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: IP Address Management</h1>
+    </header>
+
+    <main>
+        <section class="ips-available">
+            <h2>Configured IP Addresses</h2>
+            <ul id="ips" class="ips">
+                <!-- Device + interface records will print here dynamically -->
+            </ul>
+        </section>
+
+        <aside class="add-ip">
+            <h2>Assign IP Address</h2>
+
+            <form class="form" id="ip-address-form">
+                <p>
+                    <label for="site-id">Site ID</label>
+                    <input type="text" id="site-id" name="site_id"
+                           placeholder="e.g., site_0001" required>
+                </p>
+
+                <p>
+                    <label for="device-name">Device Name (Hostname)</label>
+                    <input type="text" id="device-name" name="device_name"
+                           placeholder="e.g., hq-sw_0001" required>
+                </p>
+
+                <p>
+                    <label for="interface-name">Interface Name</label>
+                    <input type="text" id="interface-name" name="interface_name"
+                           placeholder="e.g., g1/0/1 or vlan10 or g1/0/1.10" required>
+                </p>
+
+                <p>
+                    <label for="ip-address">IP Address</label>
+                    <input type="text" id="ip-address" name="ip_address"
+                           placeholder="e.g., 192.168.10.5" required>
+                </p>
+
+                <p>
+                    <label for="netmask">Subnet Mask / Prefix</label>
+                    <input type="text" id="netmask" name="netmask"
+                           placeholder="e.g., 255.255.255.0" required>
+                </p>
+
+                <p>
+                    <label for="status">Operational Status</label>
+                    <select id="status" name="status">
+                        <option value="Active">Active</option>
+                        <option value="Reserved">Reserved</option>
+                        <option value="Quarantined">Quarantined</option>
+                    </select>
+                </p>
+
+                <button type="submit">Assign IP</button>
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        /* ============================================================
+           ADD IP ADDRESS TO DATABASE
+           ============================================================ */
+        const addForm = document.getElementById("ip-address-form");
+
+        addForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // ---- Read fields ----
+            const site      = document.getElementById("site-id").value.trim();
+            const device    = document.getElementById("device-name").value.trim();
+            const intfName  = document.getElementById("interface-name").value.trim();
+            const ipAddr    = document.getElementById("ip-address").value.trim();
+            const netmask   = document.getElementById("netmask").value.trim();
+            const status    = document.getElementById("status").value.trim();
+
+            // ---- Basic validation ----
+            if (!site || !device || !intfName || !ipAddr || !netmask) {
+                alert("Please fill in all required fields before submitting.");
+                return;
+            }
+
+            // ---- Build payload ----
+            const payload = {
+                site_id:        site,
+                device_name:    device,
+                interface_name: intfName,
+                ip_address:     ipAddr,
+                netmask:        netmask,
+                status:         status
+            };
+
+            // ---- Send to backend ----
+            try {
+                const response = await fetch("api.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to reach the backend!!!");
+                }
+
+                const resp = await response.json();
+
+                if (resp.status === "error") {
+                    throw new Error(resp.message);
+                }
+
+                alert("IP address assigned successfully! ✔✔🎉");
+
+                addForm.reset();
+                loadIps();
+
+            } catch (error) {
+                alert("Error while trying to communicate to backend: " + error.message);
+            }
+        });
+
+        /* ============================================================
+           LOAD IP ADDRESSES FROM BACKEND
+           (grouped by device -> many interfaces)
+           ============================================================ */
+        const ipsList = document.getElementById("ips");
+
+        async function loadIps() {
+            try {
+                const response = await fetch("api.php");
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to fetch backend!!!");
+                }
+
+                const data = await response.json();
+
+                if (data.status === "error") {
+                    throw new Error(data.message);
+                }
+
+                ipsList.innerHTML = "";
+
+                // --- Group incoming rows by site_id + device_name ---
+                const grouped = {};
+
+                (data.ips || []).forEach(function (row) {
+                    const key = row.site_id + "|" + row.device_name;
+
+                    if (!grouped[key]) {
+                        grouped[key] = {
+                            site_id:     row.site_id,
+                            device_name: row.device_name,
+                            interfaces:  []
+                        };
+                    }
+
+                    grouped[key].interfaces.push({
+                        interface_name: row.interface_name,
+                        ip_address:     row.ip_address,
+                        netmask:        row.netmask,
+                        status:         row.status
+                    });
+                });
+
+                // --- Render one <li> per device, with all interfaces nested ---
+                Object.keys(grouped).forEach(function (key) {
+                    const device = grouped[key];
+
+                    try {
+                        const li = document.createElement("li");
+                        li.className = "ip-device";
+
+                        // Build interface blocks HTML
+                        let ifaceHtml = "";
+
+                        device.interfaces.forEach(function (iface) {
+                            ifaceHtml += `
+                                <div class="iface-block">
+                                    <span class="iface-title">interface_name:</span>
+                                    <span class="txt-intf">${iface.interface_name || "—"}</span><br>
+
+                                    <strong>ip_address:</strong>
+                                    <span class="txt-ip">${iface.ip_address || "—"}</span><br>
+
+                                    <strong>netmask:</strong>
+                                    <span class="txt-mask">${iface.netmask || "—"}</span><br>
+
+                                    <strong>status:</strong>
+                                    <span class="txt-status">${iface.status || "—"}</span>
+                                </div>
+                            `;
+                        });
+
+                        li.innerHTML = `
+                            <div class="device-header">
+                                <strong>site ID:</strong>
+                                <span class="txt-site">${device.site_id || "—"}</span><br>
+
+                                <strong>device Name:</strong>
+                                <span class="txt-device">${device.device_name || "—"}</span>
+                            </div>
+
+                            ${ifaceHtml}
+                        `;
+
+                        ipsList.appendChild(li);
+
+                    } catch (renderErr) {
+                        console.error("Error rendering device:", renderErr.message);
+                    }
+                });
+
+            } catch (err) {
+                console.error("loadIps error:", err.message);
+            }
+        }
+
+        /* ============================================================
+           INITIAL LOAD + AUTO-SYNC LOOP
+           ============================================================ */
+        loadIps();
+        setInterval(loadIps, 15000);
+    </script>
+</body>
+</html>

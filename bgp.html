@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Routing Protocols</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('file:///D:/sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT — true 1:1
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            min-width: 0;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .channels-available {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-channels {
+            flex: 1 1 0;
+            min-width: 0;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================================
+           CONFIRMATION VIEW
+           ============================================================ */
+        .confirm-block {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .confirm-block h4 {
+            color: #00e5ff;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+            padding-bottom: 4px;
+        }
+
+        .confirm-block .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 2px 0;
+        }
+
+        .confirm-block .row span:first-child {
+            color: #aaa;
+            flex-shrink: 0;
+        }
+
+        .confirm-block .row span:last-child {
+            text-align: right;
+            overflow-wrap: break-word;
+            min-width: 0;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .confirm-actions button {
+            flex: 1;
+        }
+
+        .btn-back {
+            background-color: #888 !important;
+            color: white !important;
+        }
+
+        .btn-back:hover {
+            background-color: #666 !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Routing Protocol</h1>
+    </header>
+
+    <main>
+        <section class="channels-available">
+            <h2>Routing protocols configured per router</h2>
+            <ul id="channelsbox" class="channels">
+                <!-- JavaScript will insert records here dynamically -->
+            </ul>
+        </section>
+
+        <aside id="add-channels" class="add-channels">
+            <h2>Configure Routing Protocol</h2>
+
+            <form class="form" id="add-routing-form">
+                <div class="filler">
+                    <p>
+                        <label for="site-id">Site ID (leave blank if need all L3 devices across all)</label>
+                        <input type="text" id="site-id" name="site-id"
+                               placeholder="e.g., site_0001">
+                    </p>
+                    <p>
+                        <label for="device-type">Device Layer</label>
+                        <input type="text" id="device-type" name="device-type"
+                               placeholder="default L3" value="L3" required>
+                    </p>
+
+                    <p>
+                        <label for="platform">Device Platform (leave blank if want all L3 devices)</label>
+                        <input type="text" id="platform" name="platform"
+                               placeholder="e.g., CISCO-IOS-XE">
+                    </p>
+                    <p>
+                        <label for="hostname">Hostname (if need a specific L3 device)</label>
+                        <input type="text" id="hostname" name="hostname"
+                               placeholder="e.g., NRB-RT-001">
+                    </p>
+
+                    <button type="button" id="loaddevices">Load Devices</button><br>
+                </div>
+
+                <div id="devicesbox"></div>
+
+                <button type="button" id="proceed" disabled>Proceed</button>
+
+                <div class="fillset" style="display:none">
+                    <button type="button" id="configure">Configure Devices</button>
+                </div>
+
+                <div class="confirm" style="display:none"></div>
+
+            </form>
+        </aside>
+    </main>
+	<script>
+	   let devices = [];
+        const CheckedState = {};
+        let pendingPayload = [];
+
+        /* ============================================================
+           LOAD DEVICES
+           ============================================================ */
+        document.getElementById("loaddevices").addEventListener("click", async function (event) {
+
+            event.preventDefault();
+
+            const site     = document.getElementById("site-id").value.trim();
+            const level    = document.getElementById("device-type").value.trim();
+            const platform = document.getElementById("platform").value.trim();
+            const hostname = document.getElementById("hostname").value.trim();
+            const qs = new URLSearchParams({ site, level, platform, hostname }).toString();
+
+            try {
+                const response = await fetch("api3.php?" + qs, { method: 'GET' });
+                if (!response.ok) {
+                    alert("error while trying to contact backend!!!👾👾");
+                    return;
+                }
+
+                const resp = await response.json();
+                if (resp.status === "error") {
+                    alert("👾👾 " + resp.message);
+                    return;
+                }
+
+                devices = resp.message;
+
+            } catch (err) {
+                alert("👾👾 " + err.message);
+                return;
+            }
+
+            const box = document.getElementById("devicesbox");
+            box.innerHTML = "";
+            Object.keys(CheckedState).forEach(k => delete CheckedState[k]);
+            document.getElementById("proceed").disabled = true;
+
+            document.querySelector(".fillset").innerHTML = "";
+            document.querySelector(".fillset").style.display = "none";
+            document.querySelector(".confirm").style.display = "none";
+            document.querySelector(".confirm").innerHTML = "";
+            document.querySelector(".filler").style.display = "block";
+
+            devices.forEach(function (device) {
+                const wrap = document.createElement("fieldset");
+                const legend = document.createElement("legend");
+                legend.innerHTML = `
+                    <label><input type="checkbox" data-dev="${device.id}" class="device"> ${device.name} (${device.level})</label>
+                `;
+                wrap.appendChild(legend);
+                box.appendChild(wrap);
+            });
+
+        });
+
+        /* ============================================================
+           CHECKBOX TRACKING
+           ============================================================ */
+        document.getElementById("devicesbox").addEventListener("change", function (e) {
+            const t = e.target;
+            if (!t.classList.contains("device")) return;
+            const devid = +t.dataset.dev;
+
+            if (t.checked) CheckedState[devid] = true;
+            else delete CheckedState[devid];
+
+            document.getElementById("proceed").disabled = Object.keys(CheckedState).length === 0;
+        });
+
+	    document.getElementById("proceed").addEventListener("click", function () {
+            if (Object.keys(CheckedState).length === 0) {
+                alert("Please select at least one device first!");
+                return;
+            }
+
+            document.querySelector(".filler").style.display = "none";
+
+            const box = document.querySelector(".fillset");
+            box.innerHTML = "";
+
+            Object.keys(CheckedState).forEach(function (devid) {
+                const device = devices.find(d => d.id == devid);
+                if (!device) return;
+
+                const wrap = document.createElement("fieldset");
+                wrap.classList.add("xyz");
+                const li = document.createElement("legend");
+                li.innerHTML = `
+                    <br><label><input type="text" data-dev="${device.id}" class="as1" placeholder=" e.g. 65001 "> Local/public AS Number </label>
+                    <label><input type="text" data-dev="${device.id}" class="as2" placeholder=" e.g  "> Neighbor AS number </label>
+                    <label><input type="text" data-dev="${device.id}" class="ip" placeholder=" e.g  "> neighbor IP </label></br>
+
+                    <br><label><input type="text" data-dev="${device.id}" class="blocks1" placeholder=" e.g 197.0.0.0/24 " > Permitted IP blocks to Advertise 1</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks2" placeholder=" e.g " > Permitted IP blocks to Advertise 2</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks3" placeholder=" e.g " > Permitted IP blocks to Advertise 3</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks4" placeholder=" e.g " > Permitted IP blocks to Advertise 4</label>
+                    <label><input type="text" data-dev="${device.id}" class="blocks5" placeholder=" e.g " > Permitted IP blocks to Advertise 5</label></br>
+
+                    <label><input type="number" data-dev="${device.id}" class="prepend" placeholder=" e.g (65001 65001 65001) = 3 "> Number Of times for Pre-pending </label>
+                    <label><input type="text" data-dev="${device.id}" class="preference" placeholder=" e.g " > Local Preference (higher is prefered, Default 100) </label>
+                    <label><input type="number" data-dev="${device.id}" class="maxprefix" placeholder=" e.g " value="8" > Max Prefix (for emergency flood scenario) </label>
+                    <label><input type="checkbox" data-dev="${device.id}" class="leak" value="1" > Outbound Route Prevention (uses permitted ip blocks) </label>
+                    <label><input type="checkbox" data-dev="${device.id}" class="flap" value="1" > Route Flap Dampening </label>
+                    <label><input type="checkbox" data-dev="${device.id}" class="bogon" value="1" > Bogons (Accept default route and barn non-public ips) </label>
+                `;
+                wrap.appendChild(li);
+                box.appendChild(wrap);
+            });
+
+            box.style.display = "flex";
+        });
+	
+	
+	
+	
+	</script>
+</body>
+</html>

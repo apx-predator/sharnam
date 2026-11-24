@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM IP Families</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .families-available {
+            flex: 3;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-family {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: IP Families &amp; Masks</h1>
+    </header>
+
+    <main>
+        <section class="families-available">
+            <h2>Allocated Subnet Prefixes</h2>
+            <ul id="families" class="families">
+                <!-- IP blocks from the database will pull here dynamically -->
+            </ul>
+        </section>
+
+        <aside class="add-family">
+            <h2>Allocate Network Block</h2>
+
+            <form class="form" id="ip-families-form">
+                <p>
+                    <label for="site-id">Site ID</label>
+                    <input type="text" id="site-id" name="site_id"
+                           placeholder="e.g., site_0001">
+                </p>
+
+                <p>
+                    <label for="network-prefix">Network Prefix</label>
+                    <input type="text" id="network-prefix" name="network_prefix"
+                           placeholder="e.g., 10.0.0.0" required>
+                </p>
+
+                <p>
+                    <label for="cidr-mask">CIDR Mask Block</label>
+                    <input type="number" id="cidr-mask" name="cidr_mask"
+                           min="1" max="32" placeholder="e.g., 24" required>
+                </p>
+
+                <p>
+                    <label for="allocation">Allocation</label>
+                    <select id="allocation" name="allocation">
+                        <option value="Production">Production</option>
+                        <option value="Lab_Testing">Lab_Testing</option>
+                        <option value="DMZ">DMZ Tier</option>
+                    </select>
+                </p>
+
+                <p>
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="allocated">Allocated</option>
+                        <option value="planning">Planning</option>
+                        <option value="unallocated">Un-Allocated</option>
+                    </select>
+                </p>
+
+                <button type="submit">Allocate Block</button>
+            </form>
+        </aside>
+    </main>
+
+    <script>
+        /* ============================================================
+           ADD IP FAMILY TO DATABASE
+           ============================================================ */
+        const addForm = document.getElementById("ip-families-form");
+
+        addForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // ---- Read fields ----
+            const site     = document.getElementById("site-id").value.trim();
+            const network  = document.getElementById("network-prefix").value.trim();
+            const prefix   = document.getElementById("cidr-mask").value.trim();
+            const alloc    = document.getElementById("allocation").value.trim();
+            const stat     = document.getElementById("status").value.trim();
+
+            // ---- Basic validation ----
+            if (!network || !prefix) {
+                alert("Please fill in the required fields: Network Prefix and CIDR Mask.");
+                return;
+            }
+
+            const prefixNum = Number(prefix);
+            if (isNaN(prefixNum) || prefixNum < 1 || prefixNum > 32) {
+                alert("CIDR Mask must be a number between 1 and 32.");
+                return;
+            }
+
+            // ---- Build payload ----
+            const payload = {
+                site_id:        site,
+                network_prefix: network,
+                cidr_mask:      prefixNum,
+                allocation:     alloc,
+                status:         stat
+            };
+
+            // ---- Send to backend ----
+            try {
+                const response = await fetch("api.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error occurred while trying to communicate to backend!!!");
+                }
+
+                const resp = await response.json();
+
+                if (resp.status === "error") {
+                    throw new Error(resp.message);
+                }
+
+                alert("IP Family added successfully! ✔✔🎉");
+
+                addForm.reset();
+                loadFamilies();
+
+            } catch (error) {
+                alert("Error while trying to communicate to backend: " + error.message);
+            }
+        });
+
+        /* ============================================================
+           LOAD IP FAMILIES FROM BACKEND
+           ============================================================ */
+        const familiesList = document.getElementById("families");
+
+        async function loadFamilies() {
+            try {
+                const response = await fetch("api.php");
+
+                if (!response.ok) {
+                    throw new Error("Error while trying to communicate to the backend!!!");
+                }
+
+                const data = await response.json();
+
+                if (data.status === "error") {
+                    throw new Error(data.message);
+                }
+
+                familiesList.innerHTML = "";
+
+                data.families.forEach(function (family) {
+                    try {
+                        const li = document.createElement("li");
+                        li.className = "families-list";
+                        li.style.listStyle = "none";
+                        li.style.marginBottom = "15px";
+                        li.style.padding = "10px";
+                        li.style.backgroundColor = "rgba(255,255,255,0.05)";
+                        li.style.borderRadius = "5px";
+
+                        li.innerHTML = `
+                            <div style="margin-bottom: 8px;">
+                                <strong>site_id:</strong>
+                                <span class="txt-site">${family.site_id || "—"}</span><br>
+
+                                <strong>network_prefix:</strong>
+                                <span class="txt-network">${family.network_prefix}</span><br>
+
+                                <strong>cidr_mask:</strong>
+                                <span class="txt-cidr">${family.cidr_mask}</span><br>
+
+                                <strong>allocation:</strong>
+                                <span class="txt-alloc">${family.allocation}</span><br>
+
+                                <strong>status:</strong>
+                                <span class="txt-status">${family.status}</span><br>
+                            </div>
+
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button class="btn-delete"
+                                        style="background: #e74c3c; color: white; padding: 4px 10px;
+                                               font-size: 12px; width: auto; margin: 0; border: none;
+                                               border-radius: 3px; cursor: pointer;">
+                                    Remove
+                                </button>
+                            </div>
+                        `;
+
+                        familiesList.appendChild(li);
+
+                        // Hook up delete listener for this specific family
+                        const delBtn = li.querySelector(".btn-delete");
+
+                        delBtn.addEventListener("click", async function () {
+                            if (!confirm(`Remove family ${family.network_prefix}/${family.cidr_mask} from database?`)) {
+                                return;
+                            }
+
+                            try {
+                                const deleting = await fetch("api.php", {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        network_prefix: family.network_prefix,
+                                        cidr_mask: family.cidr_mask
+                                    })
+                                });
+
+                                if (!deleting.ok) {
+                                    throw new Error("Error while trying to delete the family!!!");
+                                }
+
+                                const delRes = await deleting.json();
+
+                                if (delRes.status === "error") {
+                                    throw new Error(delRes.message);
+                                }
+
+                                alert("Family deleted successfully! ✔✔🎉");
+                                loadFamilies();
+
+                            } catch (err) {
+                                alert("Deletion error: " + err.message);
+                            }
+                        });
+
+                    } catch (renderErr) {
+                        console.error("Error rendering family:", renderErr.message);
+                    }
+                });
+
+            } catch (err) {
+                console.error("loadFamilies error:", err.message);
+            }
+        }
+
+        /* ============================================================
+           INITIAL LOAD + AUTO-SYNC LOOP
+           ============================================================ */
+        loadFamilies();
+        setInterval(loadFamilies, 25000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Port-Channels</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        .slogan {
+            text-align: center;
+            font-size: 0.72rem;
+            letter-spacing: 0.35em;
+            color: rgba(0, 229, 255, 0.28);
+            margin: -4px 0 8px 0;
+            font-weight: bold;
+            user-select: none;
+            pointer-events: none;
+            overflow: hidden;
+            white-space: nowrap;
+            animation: sloganGlow 4s ease-in-out infinite;
+        }
+
+        @keyframes sloganGlow {
+            0%, 100% { opacity: 0.28; text-shadow: 0 0 2px rgba(0,229,255,0.15); }
+            50%      { opacity: 0.55; text-shadow: 0 0 6px rgba(0,229,255,0.45); }
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .pc-available {
+            flex: 1;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-pc-panel {
+            flex: 1;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+        }
+
+        fieldset {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"],
+        fieldset input[type="checkbox"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        input:focus, select:focus { border: 2px solid #00e5ff; }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover:not(:disabled) { background-color: #ffffff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status-line {
+            font-size: 0.85rem;
+            color: #00e5ff;
+            margin-top: 8px;
+            min-height: 1.2em;
+        }
+
+        .family-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .family-btn {
+            padding: 20px;
+            font-size: 1rem;
+            background: rgba(0,229,255,0.15);
+            border: 2px solid #00e5ff;
+            color: #00e5ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .family-btn:hover {
+            background: #00e5ff;
+            color: #003366;
+        }
+
+        .family-btn small {
+            display: block;
+            color: #a0d8ff;
+            margin-top: 4px;
+            font-weight: normal;
+            font-size: 0.8rem;
+        }
+
+        .family-btn:hover small { color: #003366; }
+
+        .family-btn.danger {
+            border-color: #e74c3c;
+            color: #ff8888;
+            background: rgba(231,76,60,0.1);
+        }
+        .family-btn.danger:hover {
+            background: #e74c3c;
+            color: white;
+        }
+        .family-btn.danger small { color: #ffaaaa; }
+        .family-btn.danger:hover small { color: white; }
+
+        .iface-block {
+            padding-left: 20px;
+            margin-top: 6px;
+        }
+
+        .iface-block label {
+            font-weight: normal;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+
+        .vlan-row, .subif-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .pc-card {
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            list-style: none;
+        }
+
+        .pc-card hr {
+            margin: 8px 0;
+            border: 0;
+            border-top: 1px dashed rgba(255,255,255,0.2);
+        }
+
+        .pc-mode-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 6px;
+        }
+
+        .pc-mode-trunk { background: #27ae60; color: white; }
+        .pc-mode-access { background: #f39c12; color: #333; }
+
+        .pc-delete-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 4px 10px;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .lb-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            margin: 4px 0 12px 0;
+            padding: 8px 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .lb-chk {
+            display: inline-flex;
+            align-items: center;
+            font-weight: normal;
+            font-size: 0.85rem;
+            color: #cfeaff;
+            margin: 0;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .lb-chk input[type="checkbox"] {
+            margin-right: 5px;
+            transform: scale(1.05);
+            accent-color: #00e5ff;
+        }
+
+        .lb-chk:hover { color: #00e5ff; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Port-Channels</h1>
+    </header>
+
+    <div class="slogan" aria-hidden="true">
+        Sharnam&nbsp;—&nbsp;Automation&nbsp;you&nbsp;can&nbsp;trust,&nbsp;Year&nbsp;after&nbsp;Year👾👾
+    </div>
+
+    <main>
+        <section class="pc-available">
+            <h2>Configured Port-Channels</h2>
+            <ul id="pcs" class="pcs"></ul>
+        </section>
+
+        <aside class="add-pc-panel">
+            <h2>Port-Channel Operations</h2>
+
+            <form id="add-pc-form" method="post" action="">
+
+                <!-- ============ STEP 1: PICKER ============ -->
+                <div id="picker">
+                    <label>Profile (cred_id):
+                        <input type="text" id="cred_id" placeholder="e.g. 3" required>
+                    </label>
+                    <label>Site No:
+                        <input type="text" id="site" placeholder="e.g. site_001" required>
+                    </label>
+                    <label>Device Type:
+                        <input type="text" id="device_type" placeholder="e.g. switch or router" required>
+                    </label>
+                    <label>Platform:
+                        <input type="text" id="platform" placeholder="e.g. CISCO-IOS-XE">
+                    </label>
+                    <label>Hostname:
+                        <input type="text" id="hostname" placeholder="e.g. NRB-RT-001">
+                    </label>
+
+                    <button type="button" id="loadDevicesBtn">Load Devices</button>
+
+                    <div id="devicesBox"></div>
+
+                    <button type="button" id="proceedBtn" disabled>Proceed &rarr;</button>
+                </div>
+
+                <!-- ============ STEP 2: FAMILY CHOICE ============ -->
+                <div id="familyChoice" style="display:none">
+                    <p style="margin-bottom:12px; font-weight:bold;">
+                        Choose the port-channel operation:
+                    </p>
+                    <div class="family-buttons">
+                        <button type="button" class="family-btn" data-family="portcreation">
+                            Create L2 Port-Channel
+                            <small>Trunk or Access mode on a new Port-channel</small>
+                        </button>
+                        <button type="button" class="family-btn" data-family="membercreation">
+                            Add Members to Port-Channel
+                            <small>Assign physical interfaces to an existing Port-channel</small>
+                        </button>
+                        <button type="button" class="family-btn" data-family="l3portchannel">
+                            Create L3 (Routed) Port-Channel
+                            <small>No switchport + primary/secondary IP</small>
+                        </button>
+                        <button type="button" class="family-btn" data-family="l3subinterfaces">
+                            Create L3 Subinterfaces
+                            <small>dot1Q subinterfaces on an existing Port-channel</small>
+                        </button>
+                        <button type="button" class="family-btn danger" data-family="portabolish">
+                            Abolish Port-Channel
+                            <small>Synchronous — deletes immediately</small>
+                        </button>
+                    </div>
+                    <button type="button" id="backToPickerBtn1"
+                            style="background:#888; color:white;">
+                        &larr; Back to Picker
+                    </button>
+                </div>
+
+                <!-- ============ STEP 3a: PORTCREATION ============ -->
+                <div id="formPortcreation" style="display:none">
+                    <fieldset>
+                        <legend>Port-Channel Details</legend>
+                        <label>Port-Channel Number:
+                            <input type="number" id="pc_po" min="1" max="512" placeholder="e.g. 10">
+                        </label>
+                        <label>Description:
+                            <input type="text" id="pc_desc" placeholder="optional">
+                        </label>
+                        <label>Min Links:
+                            <input type="number" id="pc_min_links" min="1" max="8" placeholder="optional (1-8)">
+                        </label>
+                        <label>Load-Balancing:</label>
+                        <div class="lb-row" id="pc_lb_row">
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="src-dst-ip"   data-group="pc"> src-dst-ip</label>
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="src-dst-mac"  data-group="pc"> src-dst-mac</label>
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="src-dst-port" data-group="pc"> src-dst-port</label>
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="src-ip"       data-group="pc"> src-ip</label>
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="dst-ip"       data-group="pc"> dst-ip</label>
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="src-mac"      data-group="pc"> src-mac</label>
+                            <label class="lb-chk"><input type="checkbox" name="pc_lb" value="dst-mac"      data-group="pc"> dst-mac</label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Mode</legend>
+                        <label><input type="radio" name="pc_mode" value="trunk" checked> Trunk</label>
+                        <label><input type="radio" name="pc_mode" value="access"> Access</label>
+                    </fieldset>
+
+                    <div id="trunkBlock">
+                        <fieldset>
+                            <legend>Trunk VLANs</legend>
+                            <label>VLAN Action:
+                                <select id="pc_vlan_action">
+                                    <option value="replace">Set (replace all)</option>
+                                    <option value="add">Add to existing</option>
+                                    <option value="except">Except (remove from existing)</option>
+                                </select>
+                            </label>
+                            <div id="pcVlanRows"></div>
+                            <button type="button" id="addPcVlanBtn"
+                                    style="margin-top:10px; background:#27ae60; color:white;">
+                                + Add VLAN
+                            </button>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend>Native VLAN (optional)</legend>
+                            <label>Native VLAN ID:
+                                <input type="number" id="pc_native_vlan" min="1" max="4094" placeholder="leave blank to keep">
+                            </label>
+                        </fieldset>
+                    </div>
+
+                    <div id="accessBlock" style="display:none">
+                        <fieldset>
+                            <legend>Access VLAN</legend>
+                            <label>Access VLAN ID:
+                                <input type="number" id="pc_access_vlan" min="1" max="4094" placeholder="e.g. 20">
+                            </label>
+                        </fieldset>
+                    </div>
+
+                    <button type="button" id="savePcBtn">Configure Port-Channel</button>
+                    <button type="button" id="backToFamilyPc"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Family Choice
+                    </button>
+                    <div id="saveStatusPc" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3b: MEMBERCREATION ============ -->
+                <div id="formMembercreation" style="display:none">
+                    <fieldset>
+                        <legend>Target Port-Channel</legend>
+                        <label>Port-Channel Number:
+                            <input type="number" id="m_po" min="1" max="512" placeholder="e.g. 10">
+                        </label>
+                        <label>Channel Mode:
+                            <select id="m_mode">
+                                <option value="active">active (LACP)</option>
+                                <option value="passive">passive (LACP)</option>
+                                <option value="desirable">desirable (PAgP)</option>
+                                <option value="auto">auto (PAgP)</option>
+                                <option value="on">on (static)</option>
+                            </select>
+                        </label>
+                        <p style="font-size:0.85rem; color:#a0d8ff; margin-top:6px;">
+                            Tip: tick interfaces in the picker (Step 1) before choosing this operation.
+                        </p>
+                    </fieldset>
+
+                    <button type="button" id="saveMemberBtn">Add Members</button>
+                    <button type="button" id="backToFamilyMember"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Family Choice
+                    </button>
+                    <div id="saveStatusMember" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3c: L3PORTCHANNEL ============ -->
+                <div id="formL3portchannel" style="display:none">
+                    <fieldset>
+                        <legend>Port-Channel</legend>
+                        <label>Port-Channel Number:
+                            <input type="number" id="l3_po" min="1" max="512" placeholder="e.g. 20">
+                        </label>
+                        <label>Description:
+                            <input type="text" id="l3_desc" placeholder="optional">
+                        </label>
+                        <label>Min Links:
+                            <input type="number" id="l3_min_links" min="1" max="8" placeholder="optional (1-8)">
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Primary IP</legend>
+                        <label>IP Address:
+                            <input type="text" id="l3_primary_ip" placeholder="e.g. 10.10.10.1">
+                        </label>
+                        <label>Subnet Mask:
+                            <input type="text" id="l3_primary_mask" placeholder="e.g. 255.255.255.0">
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Secondary IP (optional)</legend>
+                        <label>IP Address:
+                            <input type="text" id="l3_secondary_ip" placeholder="e.g. 10.10.20.1">
+                        </label>
+                        <label>Subnet Mask:
+                            <input type="text" id="l3_secondary_mask" placeholder="e.g. 255.255.255.0">
+                        </label>
+                    </fieldset>
+
+                    <button type="button" id="saveL3Btn">Configure L3 Port-Channel</button>
+                    <button type="button" id="backToFamilyL3"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Family Choice
+                    </button>
+                    <div id="saveStatusL3" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3d: L3SUBINTERFACES ============ -->
+                <div id="formL3subinterfaces" style="display:none">
+                    <fieldset>
+                        <legend>Parent Port-Channel</legend>
+                        <label>Port-Channel Number:
+                            <input type="number" id="si_po" min="1" max="512" placeholder="e.g. 20">
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Subinterfaces</legend>
+                        <div id="subifRows"></div>
+                        <button type="button" id="addSubifBtn"
+                                style="margin-top:10px; background:#27ae60; color:white;">
+                            + Add Subinterface
+                        </button>
+                    </fieldset>
+
+                    <button type="button" id="saveSubifBtn">Configure Subinterfaces</button>
+                    <button type="button" id="backToFamilySubif"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Family Choice
+                    </button>
+                    <div id="saveStatusSubif" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3e: PORTABOLISH (SYNC) ============ -->
+                <div id="formPortabolish" style="display:none">
+                    <fieldset>
+                        <legend>Delete Port-Channel</legend>
+                        <label>Port-Channel Number:
+                            <input type="number" id="ab_po" min="1" max="512" placeholder="e.g. 10">
+                        </label>
+                        <p style="color:#ff8888; font-weight:bold; margin-top:10px;">
+                            ⚠️ This deletes the port-channel and all associated data
+                            (members, L3 config, subinterfaces) from both the device
+                            and the database.
+                        </p>
+                    </fieldset>
+
+                    <button type="button" id="saveAbolishBtn" style="background:#e74c3c;">
+                        Abolish Port-Channel (sync)
+                    </button>
+                    <button type="button" id="backToFamilyAbolish"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Family Choice
+                    </button>
+                    <div id="saveStatusAbolish" class="status-line"></div>
+                </div>
+
+            </form>
+        </aside>
+    </main>
+
+<script>
+/* ============================================================
+   SHARED STATE
+   ============================================================ */
+let devices = [];
+const chosenDevices = new Set();
+const chosenInterfaces = [];   // [{ device_id, int_id, int_name }]
+
+/* ============================================================
+   LB CHECKBOX GROUP — only one per row
+   ============================================================ */
+document.querySelectorAll('.lb-row').forEach(row => {
+    row.addEventListener('change', e => {
+        const t = e.target;
+        if (t.type !== 'checkbox') return;
+        if (t.checked) {
+            row.querySelectorAll('input[type="checkbox"]').forEach(c => {
+                if (c !== t) c.checked = false;
+            });
+        }
+    });
+});
+
+function readLb(group) {
+    const el = document.querySelector(`input[name="${group}_lb"]:checked`);
+    return el ? el.value : '';
+}
+
+/* ============================================================
+   1. LOAD DEVICES  (api3.php)
+   ============================================================ */
+document.getElementById('loadDevicesBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const site     = document.getElementById('site').value.trim();
+    const type     = document.getElementById('device_type').value.trim();
+    const platform = document.getElementById('platform').value.trim();
+    const hostname = document.getElementById('hostname').value.trim();
+
+    if (!site || !type) {
+        alert('Site No and Device Type are required');
+        return;
+    }
+
+    const qs = new URLSearchParams({ site, type, platform, hostname }).toString();
+
+    let data;
+    try {
+        const res = await fetch('api3.php?' + qs, { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        data = await res.json();
+    } catch (err) {
+        alert('Failed to load devices: ' + err.message);
+        return;
+    }
+
+    if (data.status === 'error') { alert(data.message); return; }
+    if (data.status !== 'success') { alert('Unexpected response'); return; }
+
+    devices = data.message || [];
+    chosenDevices.clear();
+    chosenInterfaces.length = 0;
+
+    const box = document.getElementById('devicesBox');
+    box.innerHTML = '';
+
+    if (devices.length === 0) {
+        box.innerHTML = '<em>No matching devices</em>';
+        document.getElementById('proceedBtn').disabled = true;
+        return;
+    }
+
+    devices.forEach(d => {
+        const wrap = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.innerHTML =
+            `<strong>Device ID:</strong> <span>${d.id}</span><br>
+             <label><input type="checkbox" class="dev-chk" data-dev="${d.id}"> ${d.name} (${d.type || ''})</label>`;
+        wrap.appendChild(legend);
+
+        const ifaceWrap = document.createElement('div');
+        ifaceWrap.className = 'iface-block';
+        if (Array.isArray(d.interfaces) && d.interfaces.length > 0) {
+            d.interfaces.forEach(iface => {
+                const lbl = document.createElement('label');
+                lbl.innerHTML =
+                    `<input type="checkbox" class="if-chk"
+                            data-dev="${d.id}"
+                            data-int="${iface.int_id ?? iface.id ?? ''}"
+                            data-name="${iface.int_name ?? iface.name ?? ''}">
+                     ${iface.int_name ?? iface.name ?? 'interface'}`;
+                ifaceWrap.appendChild(lbl);
+            });
+        } else {
+            ifaceWrap.innerHTML = '<em style="font-size:0.85rem;">No interfaces listed</em>';
+        }
+        wrap.appendChild(ifaceWrap);
+        box.appendChild(wrap);
+    });
+
+    document.getElementById('proceedBtn').disabled = false;
+});
+
+/* ============================================================
+   2. TRACK DEVICE + INTERFACE CHECKBOXES
+   ============================================================ */
+document.getElementById('devicesBox').addEventListener('change', e => {
+    const t = e.target;
+
+    if (t.classList.contains('dev-chk')) {
+        const devId = t.dataset.dev;
+        if (t.checked) chosenDevices.add(devId);
+        else            chosenDevices.delete(devId);
+
+        document.querySelectorAll(`.if-chk[data-dev="${devId}"]`).forEach(chk => {
+            chk.checked = t.checked;
+            syncInterfaceChoice(chk);
+        });
+    } else if (t.classList.contains('if-chk')) {
+        syncInterfaceChoice(t);
+        const devId = t.dataset.dev;
+        const anyChecked = document.querySelector(`.if-chk[data-dev="${devId}"]:checked`);
+        const devChk = document.querySelector(`.dev-chk[data-dev="${devId}"]`);
+        if (devChk) {
+            devChk.checked = !!anyChecked;
+            if (devChk.checked) chosenDevices.add(devId);
+            else                chosenDevices.delete(devId);
+        }
+    }
+});
+
+function syncInterfaceChoice(chk) {
+    const devId  = chk.dataset.dev;
+    const intId  = chk.dataset.int;
+    const intName = chk.dataset.name;
+
+    const idx = chosenInterfaces.findIndex(
+        x => String(x.device_id) === String(devId) && String(x.int_id) === String(intId)
+    );
+    if (idx >= 0) chosenInterfaces.splice(idx, 1);
+
+    if (chk.checked && intId) {
+        chosenInterfaces.push({ device_id: devId, int_id: intId, int_name: intName });
+    }
+}
+
+/* ============================================================
+   3. PROCEED → show family choice
+   ============================================================ */
+document.getElementById('proceedBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (chosenDevices.size === 0) {
+        alert('Choose at least one device! 👾👾');
+        return;
+    }
+
+    document.getElementById('picker').style.display       = 'none';
+    document.getElementById('familyChoice').style.display = 'block';
+});
+
+/* ============================================================
+   4. FAMILY BUTTONS
+   ============================================================ */
+document.querySelectorAll('.family-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const family = btn.dataset.family;
+
+        document.getElementById('familyChoice').style.display = 'none';
+
+        ['formPortcreation', 'formMembercreation', 'formL3portchannel',
+         'formL3subinterfaces', 'formPortabolish'].forEach(id => {
+            document.getElementById(id).style.display = 'none';
+        });
+
+        if (family === 'portcreation')    document.getElementById('formPortcreation').style.display = 'block';
+        if (family === 'membercreation')  document.getElementById('formMembercreation').style.display = 'block';
+        if (family === 'l3portchannel')   document.getElementById('formL3portchannel').style.display = 'block';
+        if (family === 'l3subinterfaces') document.getElementById('formL3subinterfaces').style.display = 'block';
+        if (family === 'portabolish')     document.getElementById('formPortabolish').style.display = 'block';
+
+        if (family === 'portcreation' && document.getElementById('pcVlanRows').children.length === 0) {
+            addPcVlanRow();
+        }
+        if (family === 'l3subinterfaces' && document.getElementById('subifRows').children.length === 0) {
+            addSubifRow();
+        }
+    });
+});
+
+/* ============================================================
+   5. BACK BUTTONS
+   ============================================================ */
+function backToFamily(prefix) {
+    document.getElementById(prefix).style.display = 'none';
+    document.getElementById('familyChoice').style.display = 'block';
+}
+
+document.getElementById('backToPickerBtn1').addEventListener('click', () => {
+    document.getElementById('familyChoice').style.display = 'none';
+    document.getElementById('picker').style.display = 'block';
+});
+document.getElementById('backToFamilyPc').addEventListener('click', () => backToFamily('formPortcreation'));
+document.getElementById('backToFamilyMember').addEventListener('click', () => backToFamily('formMembercreation'));
+document.getElementById('backToFamilyL3').addEventListener('click', () => backToFamily('formL3portchannel'));
+document.getElementById('backToFamilySubif').addEventListener('click', () => backToFamily('formL3subinterfaces'));
+document.getElementById('backToFamilyAbolish').addEventListener('click', () => backToFamily('formPortabolish'));
+
+/* ============================================================
+   6. PORTCREATION — mode toggle + VLAN rows
+   ============================================================ */
+document.querySelectorAll('input[name="pc_mode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+        const isTrunk = document.querySelector('input[name="pc_mode"]:checked').value === 'trunk';
+        document.getElementById('trunkBlock').style.display = isTrunk ? 'block' : 'none';
+        document.getElementById('accessBlock').style.display = isTrunk ? 'none' : 'block';
+    });
+});
+
+function addPcVlanRow(id = '') {
+    const container = document.getElementById('pcVlanRows');
+    const row = document.createElement('div');
+    row.className = 'vlan-row';
+    row.innerHTML = `
+        <input type="text" class="pc-vlan-id" placeholder="vlan id (e.g. 10 or 30-40)"
+               value="${id}"
+               style="flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <button type="button" class="remove-vlan-btn"
+                style="background:#e74c3c; color:white; width:auto; padding:8px 12px;
+                       border-radius:5px; border:none; cursor:pointer;">✕</button>
+    `;
+    row.querySelector('.remove-vlan-btn').addEventListener('click', () => row.remove());
+    container.appendChild(row);
+}
+
+document.getElementById('addPcVlanBtn').addEventListener('click', () => addPcVlanRow());
+
+/* ============================================================
+   7. L3SUBINTERFACES — dynamic rows
+   ============================================================ */
+function addSubifRow(vlan = '', ip = '', mask = '') {
+    const container = document.getElementById('subifRows');
+    const row = document.createElement('div');
+    row.className = 'subif-row';
+    row.innerHTML = `
+        <input type="number" class="si-vlan" placeholder="vlan" min="1" max="4094"
+               value="${vlan}"
+               style="flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <input type="text" class="si-ip" placeholder="ip"
+               value="${ip}"
+               style="flex:2; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <input type="text" class="si-mask" placeholder="mask"
+               value="${mask}"
+               style="flex:2; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <button type="button" class="remove-subif-btn"
+                style="background:#e74c3c; color:white; width:auto; padding:8px 12px;
+                       border-radius:5px; border:none; cursor:pointer;">✕</button>
+    `;
+    row.querySelector('.remove-subif-btn').addEventListener('click', () => row.remove());
+    container.appendChild(row);
+}
+
+document.getElementById('addSubifBtn').addEventListener('click', () => addSubifRow());
+
+/* ============================================================
+   Helpers — device grouping
+   ============================================================ */
+function buildDevicesWithMembers() {
+    const map = new Map();
+    chosenInterfaces.forEach(ci => {
+        if (!map.has(ci.device_id)) map.set(ci.device_id, []);
+        map.get(ci.device_id).push({ int_id: Number(ci.int_id) });
+    });
+    return [...map.entries()].map(([id, interfaces]) => ({ id, interfaces }));
+}
+
+function buildDevicesSimple() {
+    return [...chosenDevices].map(id => ({ id }));
+}
+
+/* ============================================================
+   POLL a job to completion (shared by all async operations)
+   Returns {ok:true} on success, {ok:false, message} on failure.
+   ============================================================ */
+async function pollJobUntilDone(jobId, statusEl, btn) {
+    const started = Date.now();
+    const POLL_MS = 5000;
+    const MAX_MS  = 30 * 60 * 1000;
+
+    while (Date.now() - started < MAX_MS) {
+        await new Promise(r => setTimeout(r, POLL_MS));
+
+        let poll;
+        try {
+            const pr = await fetch('api7.php?job=' + encodeURIComponent(jobId));
+            poll = await pr.json();
+        } catch (err) {
+            if (statusEl) statusEl.textContent = 'Poll network error, retrying…';
+            continue;
+        }
+        console.log('[poll]', poll);
+
+        if (poll.status === 'pending') {
+            if (statusEl) {
+                statusEl.textContent = 'Still configuring… (' + Math.round((Date.now() - started) / 1000) + 's)';
+            }
+            continue;
+        }
+        if (poll.status === 'error') {
+            return { ok: false, message: poll.message || 'job failed' };
+        }
+        if (poll.status === 'success') {
+            return { ok: true };
+        }
+    }
+    return { ok: false, message: 'timed out waiting for job ' + jobId };
+}
+
+/* ============================================================
+   ASYNC submit + poll (for portcreation / membercreation /
+   l3portchannel / l3subinterfaces)
+   ============================================================ */
+async function submitPcPayloadAsync(payload, btn, statusEl, idleLabel) {
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+    statusEl.textContent = 'Sending to backend…';
+
+    try {
+        const res = await fetch('api7.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log('[POST]', data);
+
+        if (data.status === 'error') {
+            statusEl.textContent = 'Rejected.';
+            alert('Rejected:\n' + (data.errors ? data.errors.join('\n') : data.message));
+            return;
+        }
+
+        const jobId = data.job_id;
+        statusEl.textContent = 'Waiting for devices… (job ' + jobId + ')';
+        btn.textContent = 'Waiting…';
+
+        const result = await pollJobUntilDone(jobId, statusEl, btn);
+
+        if (!result.ok) {
+            statusEl.textContent = 'Failed.';
+            alert('Configuration failed: ' + result.message);
+            return;
+        }
+
+        statusEl.textContent = 'Done.';
+        alert('All configured ✔');
+        resetAll();
+        loadPortChannels();
+
+    } catch (err) {
+        statusEl.textContent = 'Error.';
+        alert('Save error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = idleLabel;
+    }
+}
+
+/* ============================================================
+   "SYNC" submit (for portabolish) — POST, then poll to completion
+   if the backend accepted the job (which it always does).
+   This makes the sidebar Abolish button behave identically to
+   the list-panel Abolish button: it waits for the write phase
+   to finish before returning, so the DB rows are actually gone
+   when the user sees "Done."
+   ============================================================ */
+async function submitPcPayloadSync(payload, btn, statusEl, idleLabel) {
+    btn.disabled = true;
+    btn.textContent = 'Working…';
+    statusEl.textContent = 'Sending to backend…';
+
+    try {
+        const res = await fetch('api7.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        console.log('[SYNC]', data);
+
+        /* Immediate rejection (validation / dispatch failure) */
+        if (data.status === 'error') {
+            statusEl.textContent = 'Failed.';
+            alert('Abolish failed:\n' + (data.errors ? data.errors.join('\n') : data.message));
+            return;
+        }
+
+        /* Backend accepted the job → poll until the write phase completes */
+        if (data.status === 'accepted' && data.job_id) {
+            const jobId = data.job_id;
+            statusEl.textContent = 'Waiting for devices… (job ' + jobId + ')';
+            btn.textContent = 'Waiting…';
+
+            const result = await pollJobUntilDone(jobId, statusEl, btn);
+
+            if (!result.ok) {
+                statusEl.textContent = 'Failed.';
+                alert('Abolish failed: ' + result.message);
+                return;
+            }
+
+            statusEl.textContent = 'Done.';
+            alert('Port-Channel abolished ✔');
+            resetAll();
+            loadPortChannels();
+            return;
+        }
+
+        /* Backend reported success synchronously (defensive; shouldn't happen) */
+        if (data.status === 'success') {
+            statusEl.textContent = 'Done.';
+            alert('Port-Channel abolished ✔');
+            resetAll();
+            loadPortChannels();
+            return;
+        }
+
+        alert('Unexpected response: ' + JSON.stringify(data));
+
+    } catch (err) {
+        statusEl.textContent = 'Error.';
+        alert('Abolish error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = idleLabel;
+    }
+}
+
+/* ============================================================
+   8. SAVE — PORTCREATION (async)
+   ============================================================ */
+document.getElementById('savePcBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('saveStatusPc');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const po = document.getElementById('pc_po').value.trim();
+    if (!po) { alert('Port-Channel number is required'); return; }
+
+    const mode = document.querySelector('input[name="pc_mode"]:checked').value;
+    const details = {
+        portchannel_name: po,
+        description: document.getElementById('pc_desc').value.trim(),
+        mode: mode,
+    };
+
+    const minLinks = document.getElementById('pc_min_links').value.trim();
+    if (minLinks) details.min_links = parseInt(minLinks, 10);
+
+    const lb = readLb('pc');
+    if (lb) details.lb = lb;
+
+    if (mode === 'trunk') {
+        const vlans = [];
+        document.querySelectorAll('#pcVlanRows .vlan-row').forEach(row => {
+            const id = row.querySelector('.pc-vlan-id').value.trim();
+            if (id) vlans.push({ id, name: '' });
+        });
+        if (vlans.length === 0) { alert('Trunk needs at least one VLAN'); return; }
+        details.vlans = vlans;
+        details.vlan_action = document.getElementById('pc_vlan_action').value;
+
+        const nv = document.getElementById('pc_native_vlan').value.trim();
+        if (nv) details.native_vlan = nv;
+    } else {
+        const av = document.getElementById('pc_access_vlan').value.trim();
+        if (!av) { alert('Access VLAN is required'); return; }
+        details.access_vlan = av;
+    }
+
+    const payload = {
+        cred_id: Number(credId),
+        devices: buildDevicesSimple(),
+        portcreation: details
+    };
+
+    await submitPcPayloadAsync(payload, e.target, statusEl, 'Configure Port-Channel');
+});
+
+/* ============================================================
+   9. SAVE — MEMBERCREATION (async)
+   ============================================================ */
+document.getElementById('saveMemberBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('saveStatusMember');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const po = document.getElementById('m_po').value.trim();
+    if (!po) { alert('Port-Channel number is required'); return; }
+
+    if (chosenInterfaces.length === 0) {
+        alert('Tick at least one interface in the picker (Step 1) before proceeding');
+        return;
+    }
+
+    const mode = document.getElementById('m_mode').value;
+
+    const payload = {
+        cred_id: Number(credId),
+        devices: buildDevicesWithMembers(),
+        membercreation: {
+            portchannel_name: po,
+            mode: mode
+        }
+    };
+
+    await submitPcPayloadAsync(payload, e.target, statusEl, 'Add Members');
+});
+
+/* ============================================================
+   10. SAVE — L3PORTCHANNEL (async)
+   ============================================================ */
+document.getElementById('saveL3Btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('saveStatusL3');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const po = document.getElementById('l3_po').value.trim();
+    if (!po) { alert('Port-Channel number is required'); return; }
+
+    const pip = document.getElementById('l3_primary_ip').value.trim();
+    const pmask = document.getElementById('l3_primary_mask').value.trim();
+    if (!pip || !pmask) { alert('Primary IP and mask are required'); return; }
+
+    const details = {
+        portchannel_name: po,
+        primary_ip: pip,
+        primary_mask: pmask
+    };
+
+    const desc = document.getElementById('l3_desc').value.trim();
+    if (desc) details.description = desc;
+
+    const ml = document.getElementById('l3_min_links').value.trim();
+    if (ml) details.min_links = parseInt(ml, 10);
+
+    const sip = document.getElementById('l3_secondary_ip').value.trim();
+    const smask = document.getElementById('l3_secondary_mask').value.trim();
+    if (sip && smask) {
+        details.secondary_ip = sip;
+        details.secondary_mask = smask;
+    } else if (sip || smask) {
+        alert('Provide both secondary IP and mask, or neither');
+        return;
+    }
+
+    const payload = {
+        cred_id: Number(credId),
+        devices: buildDevicesSimple(),
+        l3portchannel: details
+    };
+
+    await submitPcPayloadAsync(payload, e.target, statusEl, 'Configure L3 Port-Channel');
+});
+
+/* ============================================================
+   11. SAVE — L3SUBINTERFACES (async)
+   ============================================================ */
+document.getElementById('saveSubifBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('saveStatusSubif');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const po = document.getElementById('si_po').value.trim();
+    if (!po) { alert('Port-Channel number is required'); return; }
+
+    const subs = [];
+    let bad = null;
+    document.querySelectorAll('#subifRows .subif-row').forEach(row => {
+        const vlan = row.querySelector('.si-vlan').value.trim();
+        const ip   = row.querySelector('.si-ip').value.trim();
+        const mask = row.querySelector('.si-mask').value.trim();
+
+        if (!vlan && !ip && !mask) return;
+        if (!vlan || !ip || !mask) { bad = row; return; }
+
+        const vNum = parseInt(vlan, 10);
+        if (isNaN(vNum) || vNum < 1 || vNum > 4094) { bad = row; return; }
+
+        subs.push({ vlan: vNum, ip, netmask: mask });
+    });
+
+    if (bad) { alert('Each subinterface needs vlan (1-4094), ip, and netmask'); return; }
+    if (subs.length === 0) { alert('Add at least one subinterface'); return; }
+
+    const payload = {
+        cred_id: Number(credId),
+        devices: buildDevicesSimple(),
+        l3subinterfaces: {
+            portchannel_name: po,
+            subinterfaces: subs
+        }
+    };
+
+    await submitPcPayloadAsync(payload, e.target, statusEl, 'Configure Subinterfaces');
+});
+
+/* ============================================================
+   12. SAVE — PORTABOLISH (sidebar button)
+   Uses submitPcPayloadSync, which now polls to completion.
+   ============================================================ */
+document.getElementById('saveAbolishBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const statusEl = document.getElementById('saveStatusAbolish');
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const po = document.getElementById('ab_po').value.trim();
+    if (!po) { alert('Port-Channel number is required'); return; }
+
+    if (!confirm(
+        `ABOLISH Port-channel${po}?\n\n` +
+        `This will delete the port-channel on all selected devices, ` +
+        `and remove all rows from the database (members, L3 config, subinterfaces).\n\n` +
+        `This cannot be undone.`
+    )) return;
+
+    const payload = {
+        cred_id: Number(credId),
+        devices: buildDevicesSimple(),
+        portabolish: {
+            portchannel_name: po
+        }
+    };
+
+    await submitPcPayloadSync(payload, e.target, statusEl, 'Abolish Port-Channel (sync)');
+});
+
+/* ============================================================
+   13. RESET UI
+   ============================================================ */
+function resetAll() {
+    document.getElementById('picker').style.display       = 'block';
+    document.getElementById('familyChoice').style.display = 'none';
+    ['formPortcreation', 'formMembercreation', 'formL3portchannel',
+     'formL3subinterfaces', 'formPortabolish'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+    });
+
+    document.getElementById('devicesBox').innerHTML    = '';
+    document.getElementById('pcVlanRows').innerHTML    = '';
+    document.getElementById('subifRows').innerHTML     = '';
+    document.getElementById('pc_po').value             = '';
+    document.getElementById('pc_desc').value           = '';
+    document.getElementById('pc_min_links').value      = '';
+    document.getElementById('pc_native_vlan').value    = '';
+    document.getElementById('pc_access_vlan').value    = '';
+    document.getElementById('m_po').value              = '';
+    document.getElementById('l3_po').value             = '';
+    document.getElementById('l3_desc').value           = '';
+    document.getElementById('l3_min_links').value      = '';
+    document.getElementById('l3_primary_ip').value     = '';
+    document.getElementById('l3_primary_mask').value   = '';
+    document.getElementById('l3_secondary_ip').value   = '';
+    document.getElementById('l3_secondary_mask').value = '';
+    document.getElementById('si_po').value             = '';
+    document.getElementById('ab_po').value             = '';
+
+    document.querySelectorAll('input[name="pc_lb"], input[name="l3_lb"]')
+            .forEach(c => c.checked = false);
+
+    ['saveStatusPc', 'saveStatusMember', 'saveStatusL3',
+     'saveStatusSubif', 'saveStatusAbolish'].forEach(id => {
+        document.getElementById(id).textContent = '';
+    });
+
+    chosenDevices.clear();
+    chosenInterfaces.length = 0;
+    document.getElementById('proceedBtn').disabled = true;
+}
+
+/* ============================================================
+   14. LEFT PANEL — list configured port-channels
+   ============================================================ */
+const pcsList = document.getElementById('pcs');
+
+async function loadPortChannels() {
+    try {
+        const res = await fetch('api7.php', { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        const data = await res.json();
+
+        if (data.status === 'error') throw new Error(data.message);
+
+        pcsList.innerHTML = '';
+
+        (data.devices || []).forEach(activeDev => {
+            const li = document.createElement('li');
+            li.className = 'pc-card';
+
+            let html = `
+                <div style="margin-bottom:8px;">
+                    <strong>Device ID:</strong> <span>${activeDev.device_id}</span><br>
+                    <strong>Hostname:</strong>  <span>${activeDev.hostname || '—'}</span><br>
+            `;
+
+            (activeDev.port_channels || []).forEach(pc => {
+                const modeClass = pc.mode === 'trunk' ? 'pc-mode-trunk' : 'pc-mode-access';
+                html += `
+                    <hr>
+                    <strong>Port-Channel${pc.po_number}</strong>
+                    <span class="pc-mode-badge ${modeClass}">${pc.mode}</span><br>
+                    <strong>row_pk: </strong>    <span>${pc.row_pk}</span><br>
+                    <strong>description: </strong> <span>${pc.description || '—'}</span><br>
+                    ${pc.mode === 'trunk' ? `
+                        <strong>vlans: </strong>       <span>${pc.vlan_ids || '—'}</span><br>
+                        <strong>native: </strong>      <span>${pc.native_vlan || '—'}</span><br>
+                        <strong>min_links: </strong>   <span>${pc.min_links || '—'}</span><br>
+                    ` : ''}
+                    <strong>updated_at: </strong>  <span>${pc.updated_at || '—'}</span><br>
+                    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+                        <button class="pc-delete-btn"
+                                data-po="${pc.po_number}"
+                                data-dev="${activeDev.device_id}"
+                                data-host="${activeDev.hostname || ''}">
+                            Abolish
+                        </button>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            li.innerHTML = html;
+            pcsList.appendChild(li);
+        });
+
+        pcsList.querySelectorAll('.pc-delete-btn').forEach(btn => {
+            btn.addEventListener('click', onAbolishClick);
+        });
+
+    } catch (err) {
+        console.error('Port-channel load error:', err.message);
+    }
+}
+
+/* ============================================================
+   15. ABOLISH click handler (list-panel button)
+   This already polled correctly because it uses the same
+   flow as submitPcPayloadAsync. Kept as-is for consistency.
+   ============================================================ */
+async function onAbolishClick(ev) {
+    const btn  = ev.currentTarget;
+    const po   = btn.dataset.po;
+    const dev  = btn.dataset.dev;
+    const host = btn.dataset.host;
+
+    if (!confirm(`ABOLISH Port-channel${po} on ${host || dev}?\n\nThis removes the port-channel and all related data. Continue?`)) return;
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) {
+        alert('cred_id is required — fill the Profile field at the top first');
+        return;
+    }
+
+    const payload = {
+        cred_id: Number(credId),
+        devices: [{ id: dev }],
+        portabolish: { portchannel_name: po }
+    };
+
+    btn.disabled = true;
+    btn.textContent = '…';
+
+    try {
+        const res = await fetch('api7.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        console.log('[ABOLISH]', data);
+
+        if (data.status === 'error') {
+            alert('Abolish failed:\n' + (data.errors ? data.errors.join('\n') : data.message));
+            return;
+        }
+
+        /* Accepted → poll to completion (write phase) */
+        if (data.status === 'accepted' && data.job_id) {
+            const result = await pollJobUntilDone(data.job_id, null, null);
+            if (!result.ok) {
+                alert('Abolish failed: ' + result.message);
+                return;
+            }
+            alert('Port-Channel abolished ✔');
+            loadPortChannels();
+            return;
+        }
+
+        if (data.status === 'success') {
+            alert('Port-Channel abolished ✔');
+            loadPortChannels();
+            return;
+        }
+
+        alert('Unexpected response: ' + JSON.stringify(data));
+
+    } catch (err) {
+        alert('Abolish error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Abolish';
+    }
+}
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+loadPortChannels();
+setInterval(loadPortChannels, 15000);
+</script>
+
+</body>
+</html>

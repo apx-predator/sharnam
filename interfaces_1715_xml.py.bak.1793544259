@@ -1,0 +1,1332 @@
+# gen_attrs_1715_xml.py
+#
+# Universal XML templates for general interface attributes (GEN_* grouping)
+# on IOS XE 17.15, Cisco-IOS-XE-native.
+#
+# Scope: general interface attribute payloads — one template per function.
+# Every label carries the _1715 suffix.
+#
+# Placeholders use str.format() style.
+# Templates are complete <config> documents (edit-config payloads only).
+
+import re
+
+
+# ================================================================
+# NAMESPACES
+# ================================================================
+
+NC_NS     = "urn:ietf:params:xml:ns:netconf:base:1.0"
+NATIVE_NS = "http://cisco.com/ns/yang/Cisco-IOS-XE-native"
+
+
+# ================================================================
+# 1. TEXT / LABELS
+# ================================================================
+
+# CLI equivalent: description {desc}
+# Confirmed shape: <description/>
+# {desc}: string 0..200
+DESCRIPTION_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <description>{{desc}}</description>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# CLI equivalent: export-name {export}
+# Confirmed shape: <export-name/>
+# {export}: string 1..128
+EXPORT_NAME_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <export-name>{{export}}</export-name>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# CLI equivalent: mac-address {mac}
+# Confirmed shape: <mac-address/>
+# {mac}: H.H.H (dotted hex string)
+MAC_ADDRESS_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <mac-address>{{mac}}</mac-address>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# ================================================================
+# 2. ADMIN STATE
+# ================================================================
+
+# CLI equivalent: shutdown
+# Confirmed shape: <shutdown/> (presence leaf, no value)
+SHUTDOWN_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <!-- {op_attr} will either be blank to shutdown, or nc:operation="delete" to turn it on -->
+      <shutdown {{op_attr}}/>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# ================================================================
+# 3. L2 / MTU / TIMERS
+# ================================================================
+
+# CLI equivalent: mtu {mtu}
+# Confirmed shape: <mtu/>
+# {mtu}: 64..18000
+MTU_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <mtu>{{mtu}}</mtu>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# CLI equivalent: delay {delay}
+# Confirmed shape: <delay/>
+# {delay}: 1..16777215 (tens of microseconds)
+DELAY_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <delay>{{delay}}</delay>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# CLI equivalent: load-interval {seconds}
+# Confirmed shape: <load-interval/>
+# {seconds}: 30..600, multiple of 30, default 300
+LOAD_INTERVAL_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <load-interval>{{seconds}}</load-interval>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# ================================================================
+# 4. BANDWIDTH
+# ================================================================
+
+# CLI equivalent: max-reserved-bandwidth {percent}
+# Confirmed shape: <max-reserved-bandwidth/>
+# {percent}: 1..100
+MAX_BANDWIDTH_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <max-reserved-bandwidth>{{percent}}</max-reserved-bandwidth>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# ================================================================
+# 5. MEDIA / NEGOTIATION
+# ================================================================
+
+# CLI equivalent: negotiation auto
+# Confirmed shape: <negotiation><auto/></negotiation>
+# {flag}: true|false
+# Valid on: ucse, Ethernet-Internal only
+NEGOTIATION_1715_NATIVE = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <negotiation>
+        {{auto_xml}}
+      </negotiation>
+      <!-- If auto is false, these sibling elements must be populated -->
+      {{speed_xml}}
+      {{duplex_xml}}
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# CLI equivalent: mdix auto
+# Confirmed shape: <mdix><auto/></mdix>
+# {flag}: true|false
+GEN_MDIX_1715_NATIVE = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <mdix>
+        {{auto_xml}}
+        {{mode_xml}}
+      </mdix>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# ================================================================
+# 6. SERVICE / QOS
+# ================================================================
+
+# CLI equivalent: service-insertion {svc}
+# Confirmed shape: <service-insertion/>
+# {svc}: waas|appqoe
+SERVICE_INSERTION_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <service-insertion>{{svc}}</service-insertion>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# CLI equivalent: qos trust device cisco-phone
+# Confirmed shape: <interface_qos><trust><device/></trust></interface_qos>
+# {device}: cisco-phone
+QOS_TRUST_1715 = f"""
+<config xmlns="{NC_NS}" xmlns:nc="{NC_NS}">
+  <interfaces xmlns="{NATIVE_NS}">
+    <{{parent}}>
+      <name>{{name}}</name>
+      <interface_qos>
+        <trust>
+          <device>{{device}}</device>
+        </trust>
+      </interface_qos>
+    </{{parent}}>
+  </interfaces>
+</config>
+"""
+
+
+# ================================================================
+# TEMPLATE REGISTRY (one universal string per function)
+# ================================================================
+# Keys are function names. Values are single templates valid on 17.15.
+
+TEMPLATES = {
+    # text / labels
+    "DESCRIPTION_1715":        DESCRIPTION_1715,
+    "EXPORT_NAME_1715":        EXPORT_NAME_1715,
+    "MAC_ADDRESS_1715":        MAC_ADDRESS_1715,
+    # admin state
+    "SHUTDOWN_1715":           SHUTDOWN_1715,
+    # L2 / MTU / timers
+    "MTU_1715":                MTU_1715,
+    "DELAY_1715":              DELAY_1715,
+    "LOAD_INTERVAL_1715":      LOAD_INTERVAL_1715,
+    # bandwidth
+    "MAX_BANDWIDTH_1715":      MAX_BANDWIDTH_1715,
+    # media / negotiation
+    "NEGOTIATION_1715":        NEGOTIATION_1715,
+    "GEN_MDIX_1715":           GEN_MDIX_1715,
+    # service / qos
+    "SERVICE_INSERTION_1715":  SERVICE_INSERTION_1715,
+    "QOS_TRUST_1715":          QOS_TRUST_1715,
+}
+
+
+# ================================================================
+# STARTUP PLACEHOLDER VALIDATION
+# ================================================================
+
+_ALLOWED = {
+    "parent", "name",
+    "desc", "export", "mac",
+    "mtu", "delay", "seconds",
+    "percent",
+    "flag",
+    "svc", "device",
+}
+
+_PLACEHOLDER_RE = re.compile(r"\{([a-z_]+)\}")
+
+def _validate_all():
+    errors = []
+    for name, tpl in TEMPLATES.items():
+        for match in _PLACEHOLDER_RE.findall(tpl):
+            if match not in _ALLOWED:
+                errors.append(f"{name}: unknown placeholder {{{match}}}")
+    if errors:
+        raise ValueError(
+            "gen_attrs_1715_xml: placeholder validation failed:\n  "
+            + "\n  ".join(errors)
+        )
+
+_validate_all()
+
+# l2_switching_1715.py
+# Modular L2 switching XML bodies for Cisco-IOS-XE-switch / native (IOS XE 17.15)
+# Placeholders use $…; NS dict from interface_xml_17_15 supplies $SW, $N, $NC, $ST.
+#
+# DESIGN RULES (modular / operational):
+#   * Every protocol leaf that can appear alone is its own $placeholder.
+#     Caller passes ONLY the protocols they want; the engine loops or passes
+#     a preformatted fragment. No hidden hardcoded siblings.
+#   * Singular-per-invocation templates exist for loop-driven callers
+#     (e.g. one protocol per edit-config).
+#   * Bulk templates accept a caller-supplied $…_block fragment so the
+#     engine controls which protocols go in — nothing is baked in.
+
+# ============================================================
+# 1. SWITCHPORT (true / false)
+# ============================================================
+L2_SWITCHPORT_TRUE_1715 = "<switchport-conf><switchport>true</switchport></switchport-conf>"
+L2_SWITCHPORT_FALSE_1715 = "<switchport-conf><switchport>false</switchport></switchport-conf>"
+
+# ============================================================
+# 2. DTP  ->  switchport nonegotiate (disables DTP)
+#    There is no "dtp true" leaf; DTP-off = nonegotiate present.
+# ============================================================
+L2_DTP_DISABLE_TRUE_1715 = (
+    '<switchport-config><switchport><nonegotiate xmlns="$SW"/></switchport></switchport-config>'
+)
+L2_DTP_DISABLE_FALSE_1715 = (
+    '<switchport-config><switchport><nonegotiate xmlns="$SW" nc:operation="remove"/></switchport></switchport-config>'
+)
+
+# ============================================================
+# 3. VOICE-VLAN — modular pieces
+#    Compose at will: VOICE_ID + VOICE_DETECT + ACCESS_VLAN.
+#    Bulk combo kept for convenience but all values are $params.
+# ============================================================
+L2_VOICE_FULL_1715 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW">'
+      '<vlan><vlan>$voice_vlan</vlan></vlan>'
+      '<detect><cisco-phone><full-duplex/></cisco-phone></detect>'
+    '</voice>'
+    '<access xmlns="$SW"><vlan><vlan>$access_vlan</vlan></vlan></access>'
+    '</switchport></switchport-config>'
+)
+
+# Granular voice-vlan leaves — pick one, compose freely.
+L2_VOICE_VLAN_ID_1715 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>$voice_vlan</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_DOT1P_1715 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>dot1p</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_NONE_1715 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>none</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_UNTAGGED_1715 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>untagged</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+# Voice detect (cisco-phone full-duplex) — standalone so caller can pair it.
+L2_VOICE_DETECT_1715 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><detect><cisco-phone><full-duplex/></cisco-phone></detect></voice>'
+    '</switchport></switchport-config>'
+)
+# Access vlan — standalone.
+L2_ACCESS_VLAN_1715 = (
+    '<switchport-config><switchport>'
+    '<access xmlns="$SW"><vlan><vlan>$access_vlan</vlan></vlan></access>'
+    '</switchport></switchport-config>'
+)
+
+# ============================================================
+# 4. L2 TRUNK PRUNING (add / remove / replace / none)
+#    $op is a parameterized leaf; caller chooses which one applies.
+#    No hardcoded sibling set — engine drives $op.
+# ============================================================
+L2_TRUNK_PRUNING_ADD_1715 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><add>$vlans</add></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_REMOVE_1715 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><remove>$vlans</remove></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_REPLACE_1715 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><vlans nc:operation="replace">$vlans</vlans></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_NONE_1715 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><none/></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+
+# ============================================================
+# 5. PVLAN — global (native/vlan) + interface bindings
+#    $action is a caller-driven placeholder: add | remove | all.
+# ============================================================
+PVLAN_GLOBAL_1715 = (
+    '<vlan xmlns="$N"><vlan-list>'
+      '<id>$primary_vlan</id>'
+      '<private-vlan><primary><association>'
+        '<$action>$secondary_vlans</$action>'
+      '</association></primary></private-vlan>'
+    '</vlan-list></vlan>'
+)
+
+# $pvlan_type is caller-driven: isolated | community.
+PVLAN_SECONDARY_1715 = (
+    '<vlan xmlns="$N"><vlan-list>'
+      '<id>$secondary_vlan</id>'
+      '<private-vlan><$pvlan_type/></private-vlan>'
+    '</vlan-list></vlan>'
+)
+
+PVLAN_HOST_ASSOC_1715 = (
+    '<switchport-config><switchport>'
+      '<mode xmlns="$SW"><private-vlan><host/></private-vlan></mode>'
+      '<private-vlan xmlns="$SW"><host-association>'
+        '<primary-range>$primary_vlan</primary-range>'
+        '<secondary-range>$secondary_vlan</secondary-range>'
+      '</host-association></private-vlan>'
+    '</switchport></switchport-config>'
+)
+
+PVLAN_PROMISCUOUS_MAP_1715 = (
+    '<switchport-config><switchport>'
+      '<mode xmlns="$SW"><private-vlan><promiscuous/></private-vlan></mode>'
+      '<private-vlan xmlns="$SW"><mapping>'
+        '<primary-range>$primary_vlan</primary-range>'
+        '<secondary-range>$secondary_vlans</secondary-range>'
+      '</mapping></private-vlan>'
+    '</switchport></switchport-config>'
+)
+
+# ============================================================
+# 6. PORT-SECURITY
+#    $violation  -> protect | restrict | shutdown
+#    $vlan_kind  -> voice | access
+#    $aging_type -> absolute | inactivity
+#    All caller-driven; nothing baked.
+# ============================================================
+L2_PORTSEC_ENABLE_1715 = (
+    '<switchport-config><switchport><port-security-conf xmlns="$SW"/></switchport></switchport-config>'
+)
+
+L2_PORTSEC_MAX_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<maximum-address-config><maximum><maximum>$max</maximum></maximum></maximum-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_MAX_VLAN_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<maximum-address-config><maximum><maximum>$max</maximum><vlan>$vlan_kind</vlan></maximum></maximum-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_VIOLATION_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<violation><$violation/></violation>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_VIOLATION_SHUTDOWN_VLAN_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<violation><shutdown><vlan/></shutdown></violation>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_STICKY_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-sticky-on><mac-address><sticky/></mac-address></mac-address-sticky-on>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_AGING_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<aging><time>$minutes</time><type>$aging_type</type></aging>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_MAC_ACCESS_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-config><mac-address>'
+        '<hw-address-access><hw-address>$hwaddr</hw-address></hw-address-access>'
+      '</mac-address></mac-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PORTSEC_MAC_STICKY_1715 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-config><mac-address>'
+        '<hw-address-sticky><hw-address>$hwaddr</hw-address></hw-address-sticky>'
+      '</mac-address></mac-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+# ============================================================
+# 7. L2 PROTECTED
+# ============================================================
+L2_PROTECTED_1715 = (
+    '<switchport-config><switchport><protected xmlns="$SW"/></switchport></switchport-config>'
+)
+
+# ============================================================
+# 8. HOST
+# ============================================================
+L2_HOST_1715 = (
+    '<switchport-config><switchport><host xmlns="$SW"/></switchport></switchport-config>'
+)
+
+# ============================================================
+# 9. BLOCK MULTICAST / UNICAST
+# ============================================================
+L2_BLOCK_MULTICAST_1715 = (
+    '<switchport-config><switchport><block xmlns="$SW"><multicast/></block></switchport></switchport-config>'
+)
+L2_BLOCK_UNICAST_1715 = (
+    '<switchport-config><switchport><block xmlns="$SW"><unicast/></block></switchport></switchport-config>'
+)
+
+# ============================================================
+# 10. L2 VEPA
+# ============================================================
+L2_VEPA_1715 = (
+    '<switchport-config><switchport><vepa xmlns="$SW"><enabled/></vepa></switchport></switchport-config>'
+)
+
+# ============================================================
+# 11. L2PT — l2protocol-tunnel
+#     Base set split: core protocols and p2p protocols each have a
+#     singular loop-friendly template. No hardcoded cdp+stp+vtp+lldp
+#     block, no hardcoded p2p trio.
+# ============================================================
+
+# -- core protocol leaf, one at a time. $proto = cdp|stp|vtp|lldp --
+L2PT_TUNNEL_CORE_1715 = (
+    '<l2protocol-tunnel><$proto/></l2protocol-tunnel>'
+)
+# -- point-to-point leaf, one at a time. $p2p_proto = lacp|pagp|udld --
+L2PT_TUNNEL_P2P_1715 = (
+    '<l2protocol-tunnel><point-to-point><$p2p_proto/></point-to-point></l2protocol-tunnel>'
+)
+# -- bulk core block: caller supplies the fully-formed inner fragment --
+#    e.g. $core_block = "<cdp/><stp/><vtp/><lldp/>"
+L2PT_TUNNEL_CORE_BLOCK_1715 = (
+    '<l2protocol-tunnel>$core_block</l2protocol-tunnel>'
+)
+# -- bulk p2p block: caller supplies the fully-formed inner fragment --
+#    e.g. $p2p_block = "<lacp/><pagp/><udld/>"
+L2PT_TUNNEL_P2P_BLOCK_1715 = (
+    '<l2protocol-tunnel><point-to-point>$p2p_block</point-to-point></l2protocol-tunnel>'
+)
+
+# -- drop threshold, per protocol (core): $proto = cdp|stp|vtp|lldp --
+L2PT_DROP_THRESHOLD_1715 = (
+    '<l2protocol-tunnel><drop-threshold>'
+      '<$proto><packet-rate>$pps</packet-rate></$proto>'
+    '</drop-threshold></l2protocol-tunnel>'
+)
+# -- drop threshold, per protocol (p2p): $p2p_proto = lacp|pagp|udld --
+L2PT_DROP_THRESHOLD_P2P_1715 = (
+    '<l2protocol-tunnel><drop-threshold><point-to-point>'
+      '<$p2p_proto><packet-rate>$pps</packet-rate></$p2p_proto>'
+    '</point-to-point></drop-threshold></l2protocol-tunnel>'
+)
+
+# -- shutdown threshold, per protocol (core): $proto = cdp|stp|vtp|lldp --
+L2PT_SHUTDOWN_THRESHOLD_1715 = (
+    '<l2protocol-tunnel><shutdown-threshold>'
+      '<$proto><packet-rate>$pps</packet-rate></$proto>'
+    '</shutdown-threshold></l2protocol-tunnel>'
+)
+# -- shutdown threshold, per protocol (p2p): $p2p_proto = lacp|pagp|udld --
+L2PT_SHUTDOWN_THRESHOLD_P2P_1715 = (
+    '<l2protocol-tunnel><shutdown-threshold><point-to-point>'
+      '<$p2p_proto><packet-rate>$pps</packet-rate></$p2p_proto>'
+    '</point-to-point></shutdown-threshold></l2protocol-tunnel>'
+)
+
+# -- forward protocols: caller loops per protocol with $proto (l2cp-fwd) --
+L2PT_FORWARD_PROTOCOL_1715 = (
+    '<l2protocol><forward><protocols>$proto</protocols></forward></l2protocol>'
+)
+# -- bulk forward block: caller supplies inner "<protocols>…</protocols>" --
+L2PT_FORWARD_BLOCK_1715 = (
+    '<l2protocol><forward>$proto_block</forward></l2protocol>'
+)
+
+# -- forward drop / shutdown thresholds: unchanged — already singular. --
+L2PT_FORWARD_DROP_1715 = (
+    '<l2protocol><forward><drop-threshold><threshold-list>'
+      '<proto-type>$proto</proto-type><pps-num>$pps</pps-num>'
+    '</threshold-list></drop-threshold></forward></l2protocol>'
+)
+L2PT_FORWARD_SHUTDOWN_1715 = (
+    '<l2protocol><forward><shutdown-threshold><threshold-list>'
+      '<proto-type>$proto</proto-type><pps-num>$pps</pps-num>'
+    '</threshold-list></shutdown-threshold></forward></l2protocol>'
+)
+
+# arp_link_tuning_1715.py
+# Modular ARP + link-tuning XML bodies for Cisco-IOS-XE-native (IOS XE 17.15)
+# Placeholders use $…; NS dict supplies $N, $NC.
+#
+# DESIGN RULES (modular / operational):
+#   * No hardcoded sibling sets — each repeatable leaf is caller-driven.
+#   * Multi-value leaves (cos-values, srlg values) accept a caller-supplied
+#     fragment ($*_block) so the engine can loop 1..N.
+#   * Parameter names are explicit; no baked-in defaults except where the
+#     YANG model itself has none (e.g. <dampening/> default form).
+
+# ============================================================
+# ARP
+# ============================================================
+# CLI: arp timeout <seconds>   (default 14400; recommend > 60)
+ARP_TIMEOUT_1715 = "<arp><timeout>$secs</timeout></arp>"
+
+# CLI: arp snap
+# Enable:  <snap/> ;  Disable: remove the leaf via nc:operation="remove"
+ARP_SNAP_TRUE_1715  = "<arp><snap/></arp>"
+ARP_SNAP_FALSE_1715 = '<arp><snap nc:operation="remove"/></arp>'
+
+# CLI: arp entries interface-limit <count> log <secs>
+ARP_ENTRY_LIMIT_1715 = (
+    "<arp><entries><interface-limit>"
+    "<entry-count>$count</entry-count><log>$log_secs</log>"
+    "</interface-limit></entries></arp>"
+)
+
+# CLI: arp packet-priority enable
+ARP_PACKET_PRIORITY_1715 = "<arp><packet-priority><enable/></packet-priority></arp>"
+
+# ============================================================
+# PRIORITY QUEUE (egress)
+# ============================================================
+# CLI: priority-queue out
+PQ_OUT_ENABLE_1715 = "<priority-queue><out/></priority-queue>"
+
+# CLI: priority-queue cos-map <id> <cos-values...>
+# $cos_values_block is a caller-supplied fragment, e.g.
+#   "<cos-values>0</cos-values><cos-values>1</cos-values>"
+PQ_COS_MAP_1715 = (
+    "<priority-queue><cos-map>"
+    "<id>$qid</id>"
+    "$cos_values_block"
+    "</cos-map></priority-queue>"
+)
+
+# ============================================================
+# RECEIVE QUEUE (ingress)
+# ============================================================
+# CLI: rcv-queue cos-map <queue-id> <threshold-id> <cos-values...>
+# $cos_values_block: caller-supplied fragment.
+RCV_QUEUE_COS_MAP_1715 = (
+    "<rcv-queue><cos-map>"
+    "<queue-id>$qid</queue-id>"
+    "<threshold-id>$tid</threshold-id>"
+    "$cos_values_block"
+    "</cos-map></rcv-queue>"
+)
+
+# ============================================================
+# FLOW CONTROL
+# ============================================================
+# CLI: flowcontrol receive <desired|on|off>  send <desired|on|off>
+FLOWCONTROL_1715 = (
+    "<flowcontrol>"
+    "<receive>$rx</receive>"
+    "<send>$tx</send>"
+    "</flowcontrol>"
+)
+
+# ============================================================
+# HOLD QUEUE
+# ============================================================
+# CLI: hold-queue <in|out> <queue-length>
+HOLD_QUEUE_1715 = (
+    "<hold-queue>"
+    "<direction>$direction</direction>"
+    "<queue-length>$qlen</queue-length>"
+    "</hold-queue>"
+)
+
+# ============================================================
+# BANDWIDTH
+# ============================================================
+# CLI: bandwidth <kilobits>
+LINK_BANDWIDTH_1715 = "<bandwidth><kilobits>$kbps</kilobits></bandwidth>"
+
+# CLI: bandwidth qos-reference <kbps>
+LINK_BANDWIDTH_QOS_REF_1715 = (
+    "<bandwidth><qos-reference>$kbps</qos-reference></bandwidth>"
+)
+
+# ============================================================
+# DAMPENING
+# ============================================================
+# CLI: dampening <half-life> <reuse> <suppress> <max-suppress>
+# YANG leaf names carry the -time suffix; values are caller-driven.
+DAMPENING_FULL_1715 = (
+    "<dampening>"
+    "<dampening-time>$half_life</dampening-time>"
+    "<start-reusing-time>$reuse</start-reusing-time>"
+    "<start-supressing-time>$suppress</start-supressing-time>"
+    "<maximum-supressing-time>$max_suppress</maximum-supressing-time>"
+    "</dampening>"
+)
+# CLI: dampening   (defaults, no parameters)
+DAMPENING_DEFAULT_1715 = "<dampening/>"
+
+# ============================================================
+# SRLG
+# ============================================================
+# CLI: srlg gid <value> [<value> ...]
+# $srlg_values_block: caller-supplied fragment, e.g.
+#   "<value>100</value><value>200</value>"
+SRLG_1715 = (
+    "<srlg><gid>$srlg_values_block</gid></srlg>"
+)
+
+# ============================================================
+# DOMAIN (name / path-id)
+# ============================================================
+# CLI: domain name <name>
+DOMAIN_NAME_1715 = "<domain><name>$domain</name></domain>"
+
+# CLI: domain path <path> path-id <id>
+DOMAIN_PATH_1715 = (
+    "<domain>"
+    "<path>$sp_path</path>"
+    "<path-id>$path_id</path-id>"
+    "</domain>"
+)
+
+# ============================================================
+# KEEPALIVE
+# ============================================================
+# CLI: keepalive <period> <retries>
+# YANG: keepalive-config/keepalive = true + period + retries
+KEEPALIVE_TIMERS_1715 = (
+    "<keepalive-config>"
+    "<keepalive>true</keepalive>"
+    "<period>$period</period>"
+    "<retries>$retries</retries>"
+    "</keepalive-config>"
+)
+# CLI: no keepalive
+KEEPALIVE_DISABLE_1715 = (
+    "<keepalive-config><keepalive>false</keepalive></keepalive-config>"
+)
+
+# ============================================================
+# LOGGING (link-related)
+# ============================================================
+# CLI: logging event link-status
+# $flag = true | false
+LINK_LOGGING_LINK_STATUS_1715 = (
+    "<logging><event><link-status-enable>$flag</link-status-enable></event></logging>"
+)
+
+# CLI: logging event <bundle-status|trunk-status|nfas-status|power-inline-status|status>
+# Singular loop-friendly template: $event = one of the keywords above.
+LINK_LOGGING_EVENT_1715 = (
+    "<logging><event><$event/></event></logging>"
+)
+# Bulk variant: caller supplies the fully-formed inner fragment, e.g.
+#   "<bundle-status/><trunk-status/><status/>"
+LINK_LOGGING_EVENTS_BLOCK_1715 = (
+    "<logging><event>$events_block</event></logging>"
+)
+
+# CLI: logging event spanning-tree
+LINK_LOGGING_SPANNING_TREE_1715 = (
+    "<logging><event><spanning-tree><status/></spanning-tree></event></logging>"
+)
+
+# CLI: logging event subif-link-status [ignore-bulk]
+# $ignore_bulk_block is caller-supplied: "<ignore-bulk/>" or ""
+LINK_LOGGING_SUBIF_1715 = (
+    "<logging><event><subif-link-status>$ignore_bulk_block</subif-link-status></event></logging>"
+)
+
+# ============================================================
+# FAIR QUEUE
+# ============================================================
+# CLI: fair-queue   (default, incomplete form)
+FAIR_QUEUE_1715 = "<fair-queue><incomplete/></fair-queue>"
+
+# CLI: fair-queue true|false   (explicit enable / disable)
+# $flag = true | false
+FAIR_QUEUE_CONF_1715 = (
+    "<fair-queue-conf><fair-queue>$flag</fair-queue></fair-queue-conf>"
+)
+
+# ipv4_interface_1715.py
+# Modular IPv4 interface XML bodies for Cisco-IOS-XE-native (IOS XE 17.15)
+# Placeholders use $…; NS dict supplies $N, $NC.
+#
+# DESIGN RULES (modular / operational):
+#   * No hardcoded sibling leaves — every optional keyword (allow-default,
+#     allow-self-ping, global, secondary, burst interval, etc.) is
+#     caller-driven via its own $placeholder or $*_block fragment.
+#   * Interface scaffolding (<interfaces><$parent><$name>) is owned by
+#     the caller's wrapper — bodies here are bare interface-scoped nodes.
+
+# ============================================================
+# PRIMARY / SECONDARY IPv4 ADDRESS
+# ============================================================
+# CLI: ip address <ip> <mask>
+IP4_PRIMARY_1715 = (
+    "<ip><address><primary>"
+    "<address>$ip</address><mask>$mask</mask>"
+    "</primary></address></ip>"
+)
+
+# CLI: ip address <ip> <mask> secondary
+IP4_SECONDARY_1715 = (
+    "<ip><address><secondary>"
+    "<address>$ip</address><mask>$mask</mask>"
+    "<secondary/>"
+    "</secondary></address></ip>"
+)
+
+# ============================================================
+# DHCP / NEGOTIATED + DHCP OPTIONS
+# ============================================================
+# CLI: ip address dhcp
+IP4_DHCP_1715 = "<ip><address><dhcp/></address></ip>"
+
+# CLI: ip address negotiated
+IP4_NEGOTIATED_1715 = "<ip><address><negotiated/></address></ip>"
+
+# CLI: ip address dhcp client-id <iftype> <name> hostname <host>
+# Client-id and hostname are independently optional in the YANG model;
+# $client_id_block and $hostname_block are caller-supplied fragments,
+# e.g. "<client-id><GigabitEthernet>1/0/1</GigabitEthernet></client-id>"
+# or "" to omit.
+IP4_DHCP_OPTIONS_1715 = (
+    "<ip><address><dhcp>"
+    "$client_id_block"
+    "$hostname_block"
+    "</dhcp></address></ip>"
+)
+
+# ============================================================
+# IP UNNUMBERED
+# ============================================================
+# CLI: ip unnumbered <interface>
+IP4_UNNUMBERED_1715 = "<ip><unnumbered>$src_if</unnumbered></ip>"
+
+# ============================================================
+# ACL ACCESS-GROUP (IN / OUT)
+# ============================================================
+# CLI: ip access-group <acl> in
+IP4_ACCESS_GROUP_IN_1715 = (
+    "<ip><access-group><in><acl>"
+    "<acl-name>$acl</acl-name><in/>"
+    "</acl></in></access-group></ip>"
+)
+
+# CLI: ip access-group <acl> out
+IP4_ACCESS_GROUP_OUT_1715 = (
+    "<ip><access-group><out><acl>"
+    "<acl-name>$acl</acl-name><out/>"
+    "</acl></out></access-group></ip>"
+)
+
+# ============================================================
+# ACCESS-GROUP COMMON (IN / OUT)  — IOS XE 16.12+ / 17.x
+# ============================================================
+# CLI: ip access-group common <common> <acl> in
+IP4_ACCESS_GROUP_COMMON_IN_1715 = (
+    "<ip><access-group><in><common-acl>"
+    "<common>$common_acl</common><acl-name>$acl</acl-name><in/>"
+    "</common-acl></in></access-group></ip>"
+)
+
+# CLI: ip access-group common <common> <acl> out
+IP4_ACCESS_GROUP_COMMON_OUT_1715 = (
+    "<ip><access-group><out><common-acl>"
+    "<common>$common_acl</common><acl-name>$acl</acl-name><out/>"
+    "</common-acl></out></access-group></ip>"
+)
+
+# ============================================================
+# VRF FORWARDING / RECEIVE / SITEMAP
+# ============================================================
+# CLI: vrf forwarding <vrf>   (interface-level VRF assignment)
+IP4_VRF_FORWARDING_1715 = "<vrf><forwarding>$vrf</forwarding></vrf>"
+
+# CLI: ip vrf receive <vrf>
+IP4_VRF_RECEIVE_1715 = "<ip><vrf><receive>$vrf</receive></vrf></ip>"
+
+# CLI: ip vrf sitemap <route-map>
+IP4_VRF_SITEMAP_1715 = "<ip><vrf><sitemap>$route_map</sitemap></vrf></ip>"
+
+# ============================================================
+# HELPER ADDRESS
+# ============================================================
+# CLI: ip helper-address <address>
+IP4_HELPER_1715 = (
+    "<ip><helper-address><address>$helper</address></helper-address></ip>"
+)
+
+# CLI: ip helper-address <address> global
+IP4_HELPER_GLOBAL_1715 = (
+    "<ip><helper-address><address>$helper</address><global/>"
+    "</helper-address></ip>"
+)
+
+# CLI: ip helper-address vrf <vrf> <address>
+IP4_HELPER_VRF_1715 = (
+    "<ip><helper-address><address>$helper</address><vrf>$vrf</vrf>"
+    "</helper-address></ip>"
+)
+
+# ============================================================
+# POLICY ROUTE-MAP
+# ============================================================
+# CLI: ip policy route-map <name>
+IP4_POLICY_ROUTE_MAP_1715 = (
+    "<ip><policy><route-map>$route_map</route-map></policy></ip>"
+)
+
+# ============================================================
+# PROXY ARP / LOCAL PROXY ARP
+# ============================================================
+# CLI: ip proxy-arp  /  no ip proxy-arp
+# $flag = true | false
+IP4_PROXY_ARP_1715 = "<ip><proxy-arp>$flag</proxy-arp>"
+
+# CLI: ip local-proxy-arp
+IP4_LOCAL_PROXY_ARP_1715 = "<ip><local-proxy-arp/></ip>"
+
+# ============================================================
+# REDIRECTS
+# ============================================================
+# CLI: ip redirects  /  no ip redirects
+# $flag = true | false
+IP4_REDIRECTS_1715 = "<ip><redirects>$flag</redirects>"
+
+# ============================================================
+# CLEAR DF
+# ============================================================
+# CLI: ip clear-dont-fragment  /  no ip clear-dont-fragment
+# $flag = true | false
+IP4_CLEAR_DF_1715 = "<ip><clear-dont-fragment>$flag</clear-dont-fragment>"
+
+# ============================================================
+# TCP ADJUST MSS
+# ============================================================
+# CLI: ip tcp adjust-mss <500..1460>
+IP4_TCP_MSS_1715 = "<ip><tcp><adjust-mss>$mss</adjust-mss></tcp></ip>"
+
+# ============================================================
+# IP MTU
+# ============================================================
+# CLI: ip mtu <68..18000>
+IP4_MTU_1715 = "<ip><mtu>$ip_mtu</mtu></ip>"
+
+# ============================================================
+# URPF (Unicast Reverse Path Forwarding)
+# ============================================================
+# CLI: ip verify unicast source reachable-via {rx|any} [allow-default]
+#      [allow-self-ping] [<acl>]
+# $via            = rx (strict) | any (loose)
+# $allow_block    = caller-supplied, e.g. "<allow-default/><allow-self-ping/>"
+#                   or "" to omit.
+# $acl_block      = caller-supplied, e.g. "<access-list>100</access-list>"
+#                   or "" to omit.
+IP4_URPF_1715 = (
+    "<ip><verify><unicast><source>"
+    "<reachable-via>$via</reachable-via>"
+    "$allow_block"
+    "$acl_block"
+    "</source></unicast></verify></ip>"
+)
+
+# ============================================================
+# ARP INSPECTION TRUST + RATE LIMIT
+# ============================================================
+# CLI: ip arp inspection trust
+IP4_ARP_INSPECT_TRUST_1715 = "<ip><arp><inspection><trust/></inspection></arp></ip>"
+
+# CLI: ip arp inspection limit rate <pps> [burst interval <sec>]
+# $burst_block = caller-supplied fragment, e.g.
+#                "<burst><interval>5</interval></burst>" or "" to omit.
+IP4_ARP_INSPECT_RATE_1715 = (
+    "<ip><arp><inspection><limit>"
+    "<rate>$pps</rate>"
+    "$burst_block"
+    "</limit></inspection></arp></ip>"
+)
+
+# CLI: ip arp inspection limit none  (unlimited rate)
+IP4_ARP_INSPECT_RATE_NONE_1715 = (
+    "<ip><arp><inspection><limit><none/></limit></inspection></arp></ip>"
+)
+
+# ============================================================
+# DIRECTED BROADCAST
+# ============================================================
+# CLI: ip directed-broadcast   (no ACL)
+IP4_DIRECTED_BROADCAST_1715 = "<ip><directed-broadcast/></ip>"
+
+# CLI: ip directed-broadcast <acl>
+IP4_DIRECTED_BROADCAST_ACL_1715 = (
+    "<ip><directed-broadcast>"
+    "<direct-broadcast>$acl</direct-broadcast>"
+    "</directed-broadcast></ip>"
+)
+
+# ipv6_as_sc_1715.py
+# Modular IPv6 / access-session / storm-control XML bodies (IOS XE 17.15)
+# Placeholders use $…; NS dict supplies $N, $NC.
+#
+# DESIGN RULES (modular / operational):
+#   * No hardcoded sibling leaves — optional keywords (eui-64, anycast,
+#     default, rapid-commit, peer, include multicast, etc.) are
+#     caller-driven via $*_block fragments or individual templates.
+#   * Repeated structures (prefix-list, ACL, storm-control types) are
+#     loop-friendly singular templates with $placeholders the engine drives.
+
+# ============================================================
+# IPv6 — ENABLE
+# ============================================================
+# CLI: ipv6 enable
+IP6_ENABLE_1715 = "<ipv6><enable/></ipv6>"
+
+# ============================================================
+# IPv6 — ADDRESS (prefix-list)
+# ============================================================
+# CLI: ipv6 address <prefix>
+IP6_ADDRESS_PREFIX_1715 = (
+    "<ipv6><address><prefix-list><prefix>$ipv6</prefix></prefix-list></address></ipv6>"
+)
+
+# CLI: ipv6 address <prefix> eui-64
+IP6_ADDRESS_EUI64_1715 = (
+    "<ipv6><address><prefix-list><prefix>$ipv6</prefix><eui-64/></prefix-list></address></ipv6>"
+)
+
+# CLI: ipv6 address <prefix> anycast
+IP6_ADDRESS_ANYCAST_1715 = (
+    "<ipv6><address><prefix-list><prefix>$ipv6</prefix><anycast/></prefix-list></address></ipv6>"
+)
+
+# ============================================================
+# IPv6 — LINK-LOCAL
+# ============================================================
+# CLI: ipv6 address <ll-addr> link-local
+IP6_ADDRESS_LINK_LOCAL_1715 = (
+    "<ipv6><address><link-local-address><address>$ll</address><link-local/>"
+    "</link-local-address></address></ipv6>"
+)
+
+# ============================================================
+# IPv6 — AUTOCONFIG / DHCP / RAPID-COMMIT / SLAAC
+# ============================================================
+# CLI: ipv6 address autoconfig
+IP6_ADDRESS_AUTOCONFIG_1715 = "<ipv6><address><autoconfig/></address></ipv6>"
+
+# CLI: ipv6 address autoconfig default
+IP6_ADDRESS_AUTOCONFIG_DEFAULT_1715 = (
+    "<ipv6><address><autoconfig><default/></autoconfig></address></ipv6>"
+)
+
+# CLI: ipv6 address dhcp
+IP6_ADDRESS_DHCP_1715 = "<ipv6><address><dhcp/></address></ipv6>"
+
+# CLI: ipv6 address dhcp rapid-commit
+IP6_ADDRESS_DHCP_RAPID_COMMIT_1715 = (
+    "<ipv6><address><dhcp><rapid-commit/></dhcp></address></ipv6>"
+)
+
+# CLI: ipv6 address prefix-name <name> prefix-options ipv6-prefix <prefix>
+IP6_ADDRESS_PREFIX_NAME_1715 = (
+    "<ipv6><address><prefix-name><name>$pfx_name</name><prefix-options>"
+    "<ipv6-prefix><prefix>$ipv6</prefix></ipv6-prefix>"
+    "</prefix-options></prefix-name></address></ipv6>"
+)
+
+# ============================================================
+# IPv6 — UNNUMBERED
+# ============================================================
+# CLI: ipv6 unnumbered <src_if>
+IP6_UNNUMBERED_1715 = "<ipv6><unnumbered>$src_if</unnumbered></ipv6>"
+
+# ============================================================
+# IPv6 — MTU
+# ============================================================
+# CLI: ipv6 mtu <ip6_mtu>
+IP6_MTU_1715 = "<ipv6><mtu>$ip6_mtu</mtu></ipv6>"
+
+# ============================================================
+# IPv6 — ND DAD ATTEMPTS
+# ============================================================
+# CLI: ipv6 nd dad attempts <0..600>
+IP6_ND_DAD_ATTEMPTS_1715 = (
+    "<ipv6><nd><dad><attempts>$attempts</attempts></dad></nd></ipv6>"
+)
+
+# ============================================================
+# IPv6 — ND NUD IGP
+# ============================================================
+# CLI: ipv6 nd nud igp  /  no ipv6 nd nud igp
+# $flag = true | false
+IP6_ND_NUD_IGP_1715 = "<ipv6><nd><nud><igp>$flag</igp></nud></nd></ipv6>"
+
+# ============================================================
+# IPv6 — TCP ADJUST MSS
+# ============================================================
+# CLI: ipv6 tcp adjust-mss <40..1454>
+IP6_TCP_ADJUST_MSS_1715 = "<ipv6><tcp><adjust-mss>$mss</adjust-mss></tcp></ipv6>"
+
+# ============================================================
+# IPv6 — TRAFFIC FILTER (direction + ACL)
+# ============================================================
+# CLI: ipv6 traffic-filter <acl> in|out
+# $direction = in | out
+IP6_TRAFFIC_FILTER_1715 = (
+    "<ipv6><traffic-filter><direction>$direction</direction>"
+    "<access-list>$acl</access-list></traffic-filter></ipv6>"
+)
+
+# ============================================================
+# IPv6 — SOURCE GUARD
+# ============================================================
+# CLI: ipv6 source-guard attach-policy <policy>
+# $policy_block = caller-supplied "<attach-policy>NAME</attach-policy>"
+#                 or "" to attach the default policy (no policy arg).
+IP6_SOURCE_GUARD_1715 = (
+    "<ipv6><source-guard>$policy_block</source-guard></ipv6>"
+)
+
+# ============================================================
+# IPv6 — VERIFY UNICAST REVERSE PATH
+# ============================================================
+# CLI: ipv6 verify unicast reverse-path [<acl>]
+# $acl_block = caller-supplied "<acl-name>NAME</acl-name>" or "" to omit.
+IP6_VERIFY_UNICAST_REVERSE_PATH_1715 = (
+    "<ipv6><verify><unicast><reverse-path>$acl_block</reverse-path>"
+    "</unicast></verify></ipv6>"
+)
+
+# ============================================================
+# ACCESS-SESSION — PORT CONTROL
+# ============================================================
+# CLI: access-session port-control <auto|force-authorized|force-unauthorized>
+AS_PORT_CONTROL_1715 = (
+    "<access-session><port-control-config>$pc</port-control-config></access-session>"
+)
+
+# ============================================================
+# ACCESS-SESSION — CONTROL DIRECTION
+# ============================================================
+# CLI: access-session control-direction <both|in>
+AS_CONTROL_DIRECTION_1715 = (
+    "<access-session><control-direction-config>$dir</control-direction-config></access-session>"
+)
+
+# ============================================================
+# ACCESS-SESSION — HOST MODE
+# ============================================================
+# CLI: access-session host-mode <single-host|multi-host|multi-domain|multi-auth>
+AS_HOST_MODE_1715 = (
+    "<access-session><host-mode-config><modes>$hm</modes></host-mode-config></access-session>"
+)
+
+# CLI: access-session host-mode multi-host peer
+AS_HOST_MODE_PEER_1715 = (
+    "<access-session><host-mode-config><modes>multi-host</modes><peer/>"
+    "</host-mode-config></access-session>"
+)
+
+# ============================================================
+# ACCESS-SESSION — MONITOR
+# ============================================================
+# CLI: access-session monitor  /  no access-session monitor
+# $flag = true | false
+AS_MONITOR_1715 = "<access-session><monitor>$flag</monitor></access-session>"
+
+# ============================================================
+# STORM-CONTROL — ACTION
+# ============================================================
+# CLI: storm-control action level <pct>
+SC_ACTION_LEVEL_1715 = (
+    "<storm-control><action><level>$pct</level></action></storm-control>"
+)
+
+# CLI: storm-control action shutdown
+SC_ACTION_SHUTDOWN_1715 = "<storm-control><action><shutdown/></action></storm-control>"
+
+# CLI: storm-control action trap
+SC_ACTION_TRAP_1715 = "<storm-control><action><trap/></action></storm-control>"
+
+# ============================================================
+# STORM-CONTROL — THRESHOLD (percent)
+# ============================================================
+# CLI: storm-control <type> level threshold <rise> <fall>
+# $sc_type = broadcast | multicast | unicast | unknown-unicast
+# $rise / $fall = percent values, caller-driven
+SC_THRESHOLD_PERCENT_1715 = (
+    "<storm-control><$sc_type><level><threshold>"
+    "<rising-threshold>$rise</rising-threshold>"
+    "<falling-threshold>$fall</falling-threshold>"
+    "</threshold></level></$sc_type></storm-control>"
+)
+
+# ============================================================
+# STORM-CONTROL — BROADCAST INCLUDE MULTICAST
+# ============================================================
+# CLI: storm-control broadcast include multicast
+SC_BROADCAST_INCLUDE_MULTICAST_1715 = (
+    "<storm-control><broadcast><include><multicast/></include></broadcast></storm-control>"
+)
+
+# macsec_phy_po_type_nve_1715.py
+# Modular MACsec / PHY / Port-channel / Type / NVE bodies (IOS XE 17.15)
+# Placeholders use $…; NS dict supplies $N, $NC.
+#
+# DESIGN RULES (modular / operational):
+#   * No hardcoded sibling leaves — optional keywords (probe, mcast-group
+#     min/max, standalone-disable, etc.) are caller-driven via $*_block
+#     fragments or individual templates.
+#   * Repeatable structures (member vni entries) are loop-friendly:
+#     the engine iterates one VNI at a time.
+#   * Interface scaffolding is owned by the caller's wrapper — bodies
+#     here are bare interface-scoped nodes.
+
+# ============================================================
+# MACsec
+# ============================================================
+# CLI: macsec   (enable)
+MSEC_ENABLE_1715 = "<macsec-enable><macsec/></macsec-enable>"
+
+# CLI: macsec replay-protection window-size <0..4294967295>  (default 64)
+MSEC_REPLAY_PROTECTION_1715 = (
+    "<macsec-option><macsec><replay-protection>"
+    "<window-size>$window</window-size>"
+    "</replay-protection></macsec></macsec-option>"
+)
+
+# ============================================================
+# MISC — Subscriber inactivity / probe
+# ============================================================
+# CLI: subscriber aging inactivity-timer <secs> [probe]
+# $probe_block = caller-supplied "<probe/>" or "" to omit.
+MISC_SUBSCRIBER_INACTIVITY_1715 = (
+    "<subscriber><aging><inactivity-timer>"
+    "<value>$secs</value>"
+    "$probe_block"
+    "</inactivity-timer></aging></subscriber>"
+)
+
+# CLI: subscriber aging probe   (alternative form)
+MISC_SUBSCRIBER_PROBE_1715 = "<subscriber><aging><probe/></aging></subscriber>"
+
+# ============================================================
+# PHYSICAL LAYER
+# ============================================================
+# CLI: media-type {auto-select|rj45|sfp}
+PHY_MEDIA_TYPE_1715 = "<media-type>$media</media-type>"
+
+# CLI: fec {auto|cl108|cl74|cl91|off}   (TwentyFiveGigE only)
+PHY_FEC_1715 = "<fec>$fec</fec>"
+
+# ============================================================
+# PORT-CHANNEL
+# ============================================================
+# CLI: port-channel load-balance-hash-algo <algo>
+PO_LOAD_BALANCE_HASH_ALGO_1715 = (
+    "<load-balance-hash-algo>$algo</load-balance-hash-algo>"
+)
+
+# CLI: port-channel min-links <2..8>
+PO_MIN_LINKS_1715 = (
+    "<port-channel><min-links>$min_links</min-links></port-channel>"
+)
+
+# CLI: port-channel standalone-disable
+PO_STANDALONE_DISABLE_1715 = (
+    "<port-channel><standalone-disable/></port-channel>"
+)
+
+# ============================================================
+# OTHER TYPE LEAVES
+# ============================================================
+# CLI: autostate  /  no autostate   (Vlan interface)
+# $flag = true | false
+TYPE_VLAN_AUTOSTATE_1715 = "<autostate>$flag</autostate>"
+
+# CLI: qos pre-classify   (Tunnel interface)
+TYPE_TUNNEL_QOS_PRE_CLASSIFY_1715 = "<qos><pre-classify/></qos>"
+
+# ============================================================
+# NVE / VXLAN
+# ============================================================
+# CLI: host-reachability protocol bgp
+NVE_HOST_REACHABILITY_BGP_1715 = (
+    "<host-reachability><protocol><bgp/></protocol></host-reachability>"
+)
+
+# CLI: source-interface <iftype> <name>   (e.g. Loopback 0)
+NVE_SOURCE_INTERFACE_1715 = (
+    "<source-interface><$src_type>$src_name</$src_type></source-interface>"
+)
+
+# CLI: member vni <vni> vrf <vrf>
+NVE_MEMBER_VNI_VRF_1715 = (
+    "<member-in-one-line><member><vni>"
+    "<vni-range>$vni</vni-range><vrf>$vrf</vrf>"
+    "</vni></member></member-in-one-line>"
+)
+
+# CLI: member vni <vni> mcast-group <min> [<max>]
+# $mc_max_block = caller-supplied "<multicast-group-max>N</multicast-group-max>"
+#                 or "" to omit (single-address mcast-group form).
+NVE_MEMBER_VNI_MCAST_GROUP_1715 = (
+    "<member><vni><vni-range>$vni</vni-range><mcast-group>"
+    "<multicast-group-min>$mc_min</multicast-group-min>"
+    "$mc_max_block"
+    "</mcast-group></vni></member>"
+)

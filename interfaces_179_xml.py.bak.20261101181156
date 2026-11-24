@@ -1,0 +1,1518 @@
+# interface_attrs_179.py
+# Modular interface XML bodies for Cisco-IOS-XE-native (IOS XE 17.9),
+# derived from Cisco-IOS-XE-interfaces rev 2022-07-01 (module-version 10.0.0),
+# Cisco-IOS-XE-switch rev 2022-07-01 (5.0.0), Cisco-IOS-XE-vlan rev 2022-03-01 (4.0.0),
+# Cisco-IOS-XE-native rev 2022-07-01 (10.0.0).
+# Same conventions as interface_attrs_1715.py — same label names, _179 suffix.
+# Placeholders use $…; NS dict supplies $N, $NC, $SW, $ST, $VLAN.
+#
+# DESIGN RULES (modular / operational):
+#   * Valued leaves (true|false) are symmetric: caller passes $flag.
+#   * Every presence leaf has a matching *_REMOVE_179 twin.
+#   * Every additive/list feature has a *_REMOVE_179 (remove-by-key) twin.
+#   * Bulk forms accept $*_block fragments so the engine controls contents.
+#   * Interface scaffolding (<interfaces><$parent><$name>) is owned by
+#     the caller's wrapper — bodies here are bare interface-scoped nodes.
+#   * Families that exist in 17.15 but not here are registered with
+#     _t() in TEMPLATES and explained in NOT_PRESENT.
+#
+# 17.9 DIFFERENCES vs the 1715 templates (all verified against the YANG):
+#   * L2PT drop/shutdown-threshold: per-protocol leaf IS the pps value (uint16);
+#     `packet-rate` is a sibling leaf, not a child  -> templates reshaped.
+#   * HOLD_QUEUE_REMOVE: list entry removal needs the key.
+#   * KEEPALIVE: no <keepalive-config>; uses choice keepalive | keepalive-settings.
+#   * IP4_URPF: no ACL leaf under verify/unicast/source  -> $acl_block dropped.
+#   * IP4_ARP_INSPECT_RATE: no burst leaf  -> $burst_block dropped.
+#   * IP4_PROXY_ARP / REDIRECTS / CLEAR_DF: closing </ip> present here.
+#   * PQ_COS_MAP is a container (one per interface), not a list.
+#   * NEGOTIATION exists only on lists ucse and Ethernet-Internal.
+#   * PHY_MEDIA_TYPE: Gig/2.5G/5G/10G/25G/40G/50G + AppGig lists only.
+#   * PHY_FEC: TwentyFiveGigE list only.
+#   * Port-channel uses <load-balancing> (vlan|flow); no load-balance-hash-algo.
+#
+# SWITCH-MODULE NOTES (Cisco-IOS-XE-switch 5.0.0):
+#   * Everything under switchport-config/switchport and interface-level `macsec`
+#     carries xmlns="$SW" on the first node.
+#   * L2_PORTSEC_MAX / MAX_VLAN: list `maxcount` (key max-addresses, leaf vlan).
+#   * L2_PORTSEC_MAC_STICKY: hw-address-access with leaf sticky='sticky'.
+#   * MSEC_ENABLE: plain <macsec/> leaf, not <macsec-enable><macsec/>.
+#   * PVLAN_GLOBAL*/PVLAN_SECONDARY*: native-scoped (wrap with wrap_native()).
+
+import re
+from string import Template as _Template
+
+
+# ============================================================
+# NAMESPACES
+# ============================================================
+# $N    = http://cisco.com/ns/yang/Cisco-IOS-XE-native
+# $NC   = urn:ietf:params:xml:ns:netconf:base:1.0
+# $SW   = http://cisco.com/ns/yang/Cisco-IOS-XE-switch
+# $ST   = http://cisco.com/ns/yang/Cisco-IOS-XE-spanning-tree
+# $VLAN = http://cisco.com/ns/yang/Cisco-IOS-XE-vlan
+
+
+# ============================================================
+# 1. GENERAL ATTRIBUTES
+# ============================================================
+
+DESCRIPTION_179          = "<description>$desc</description>"
+DESCRIPTION_REMOVE_179   = '<description nc:operation="remove"/>'
+EXPORT_NAME_179          = "<export-name>$export</export-name>"
+EXPORT_NAME_REMOVE_179   = '<export-name nc:operation="remove"/>'
+MAC_ADDRESS_179          = "<mac-address>$mac</mac-address>"
+MAC_ADDRESS_REMOVE_179   = '<mac-address nc:operation="remove"/>'
+
+SHUTDOWN_179             = "<shutdown/>"
+SHUTDOWN_REMOVE_179      = '<shutdown nc:operation="remove"/>'
+
+MTU_179                  = "<mtu>$mtu</mtu>"
+MTU_REMOVE_179           = '<mtu nc:operation="remove"/>'
+DELAY_179                = "<delay>$delay</delay>"
+DELAY_REMOVE_179         = '<delay nc:operation="remove"/>'
+LOAD_INTERVAL_179        = "<load-interval>$seconds</load-interval>"
+LOAD_INTERVAL_REMOVE_179 = '<load-interval nc:operation="remove"/>'
+MAX_BANDWIDTH_179        = "<max-reserved-bandwidth>$percent</max-reserved-bandwidth>"
+MAX_BANDWIDTH_REMOVE_179 = '<max-reserved-bandwidth nc:operation="remove"/>'
+
+NEGOTIATION_179          = "<negotiation><auto>$flag</auto></negotiation>"
+GEN_MDIX_179             = "<mdix><auto>$flag</auto></mdix>"
+
+SERVICE_INSERTION_179        = "<service-insertion>$svc</service-insertion>"
+SERVICE_INSERTION_REMOVE_179 = '<service-insertion nc:operation="remove"/>'
+QOS_TRUST_179                = '<interface_qos><trust><device>$device</device></trust></interface_qos>'
+QOS_TRUST_REMOVE_179         = '<interface_qos nc:operation="remove"/>'
+
+
+# ============================================================
+# 2. L2 SWITCHING
+# ============================================================
+
+L2_SWITCHPORT_TRUE_179  = "<switchport-conf><switchport>true</switchport></switchport-conf>"
+L2_SWITCHPORT_FALSE_179 = "<switchport-conf><switchport>false</switchport></switchport-conf>"
+
+L2_DTP_DISABLE_TRUE_179 = (
+    '<switchport-config><switchport><nonegotiate xmlns="$SW"/></switchport></switchport-config>'
+)
+L2_DTP_DISABLE_FALSE_179 = (
+    '<switchport-config><switchport><nonegotiate xmlns="$SW" nc:operation="remove"/></switchport></switchport-config>'
+)
+
+L2_VOICE_FULL_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW">'
+      '<vlan><vlan>$voice_vlan</vlan></vlan>'
+      '<detect><cisco-phone><full-duplex/></cisco-phone></detect>'
+    '</voice>'
+    '<access xmlns="$SW"><vlan><vlan>$access_vlan</vlan></vlan></access>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_FULL_REMOVE_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW" nc:operation="remove"/>'
+    '<access xmlns="$SW" nc:operation="remove"/>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_ID_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>$voice_vlan</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_DOT1P_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>dot1p</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_NONE_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>none</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_UNTAGGED_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan><vlan>untagged</vlan></vlan></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_VLAN_REMOVE_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><vlan nc:operation="remove"/></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_DETECT_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><detect><cisco-phone><full-duplex/></cisco-phone></detect></voice>'
+    '</switchport></switchport-config>'
+)
+L2_VOICE_DETECT_REMOVE_179 = (
+    '<switchport-config><switchport>'
+    '<voice xmlns="$SW"><detect nc:operation="remove"/></voice>'
+    '</switchport></switchport-config>'
+)
+L2_ACCESS_VLAN_179 = (
+    '<switchport-config><switchport>'
+    '<access xmlns="$SW"><vlan><vlan>$access_vlan</vlan></vlan></access>'
+    '</switchport></switchport-config>'
+)
+L2_ACCESS_VLAN_REMOVE_179 = (
+    '<switchport-config><switchport>'
+    '<access xmlns="$SW"><vlan nc:operation="remove"/></access>'
+    '</switchport></switchport-config>'
+)
+
+L2_TRUNK_PRUNING_ADD_179 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><add>$vlans</add></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_REMOVE_179 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><remove>$vlans</remove></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_REPLACE_179 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><vlans nc:operation="replace">$vlans</vlans></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_NONE_179 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning><vlan><none/></vlan></pruning></trunk>'
+    '</switchport></switchport-config>'
+)
+L2_TRUNK_PRUNING_REMOVE_ALL_179 = (
+    '<switchport-config><switchport>'
+    '<trunk xmlns="$SW"><pruning nc:operation="remove"/></trunk>'
+    '</switchport></switchport-config>'
+)
+
+PVLAN_HOST_ASSOC_179 = (
+    '<switchport-config><switchport>'
+      '<mode xmlns="$SW"><private-vlan><host/></private-vlan></mode>'
+      '<private-vlan xmlns="$SW"><host-association>'
+        '<primary-range>$primary_vlan</primary-range>'
+        '<secondary-range>$secondary_vlan</secondary-range>'
+      '</host-association></private-vlan>'
+    '</switchport></switchport-config>'
+)
+PVLAN_HOST_ASSOC_REMOVE_179 = (
+    '<switchport-config><switchport>'
+      '<private-vlan xmlns="$SW"><host-association nc:operation="remove"/></private-vlan>'
+    '</switchport></switchport-config>'
+)
+PVLAN_PROMISCUOUS_MAP_179 = (
+    '<switchport-config><switchport>'
+      '<mode xmlns="$SW"><private-vlan><promiscuous/></private-vlan></mode>'
+      '<private-vlan xmlns="$SW"><mapping>'
+        '<primary-range>$primary_vlan</primary-range>'
+        '<secondary-range>$secondary_vlans</secondary-range>'
+      '</mapping></private-vlan>'
+    '</switchport></switchport-config>'
+)
+PVLAN_PROMISCUOUS_MAP_REMOVE_179 = (
+    '<switchport-config><switchport>'
+      '<private-vlan xmlns="$SW"><mapping nc:operation="remove"/></private-vlan>'
+    '</switchport></switchport-config>'
+)
+
+# --- PVLAN global — NATIVE-scoped (wrap with wrap_native()) ---
+PVLAN_GLOBAL_179 = (
+    '<vlan xmlns="$N"><vlan-list xmlns="$VLAN">'
+      '<id>$primary_vlan</id>'
+      '<private-vlan><primary/><association>$secondary_vlans</association></private-vlan>'
+    '</vlan-list></vlan>'
+)
+PVLAN_GLOBAL_PRIMARY_179 = (
+    '<vlan xmlns="$N"><vlan-list xmlns="$VLAN">'
+      '<id>$primary_vlan</id><private-vlan><primary/></private-vlan>'
+    '</vlan-list></vlan>'
+)
+PVLAN_GLOBAL_ASSOC_179 = (
+    '<vlan xmlns="$N"><vlan-list xmlns="$VLAN">'
+      '<id>$primary_vlan</id><private-vlan><association>$secondary_vlans</association></private-vlan>'
+    '</vlan-list></vlan>'
+)
+PVLAN_GLOBAL_REMOVE_179 = (
+    '<vlan xmlns="$N"><vlan-list xmlns="$VLAN">'
+      '<id>$primary_vlan</id><private-vlan nc:operation="remove"/>'
+    '</vlan-list></vlan>'
+)
+PVLAN_SECONDARY_179 = (
+    '<vlan xmlns="$N"><vlan-list xmlns="$VLAN">'
+      '<id>$secondary_vlan</id><private-vlan><$pvlan_type/></private-vlan>'
+    '</vlan-list></vlan>'
+)
+PVLAN_SECONDARY_REMOVE_179 = (
+    '<vlan xmlns="$N"><vlan-list xmlns="$VLAN" nc:operation="remove"><id>$secondary_vlan</id></vlan-list></vlan>'
+)
+
+L2_PORTSEC_ENABLE_179 = (
+    '<switchport-config><switchport><port-security-conf xmlns="$SW"/></switchport></switchport-config>'
+)
+L2_PORTSEC_ENABLE_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-conf xmlns="$SW" nc:operation="remove"/></switchport></switchport-config>'
+)
+L2_PORTSEC_MAX_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<maxcount><max-addresses>$max</max-addresses></maxcount>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_MAX_VLAN_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<maxcount><max-addresses>$max</max-addresses><vlan>$vlan_kind</vlan></maxcount>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_MAX_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<maxcount nc:operation="remove"><max-addresses>$max</max-addresses></maxcount>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_VIOLATION_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<violation><$violation/></violation>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_VIOLATION_SHUTDOWN_VLAN_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<violation><shutdown><vlan/></shutdown></violation>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_VIOLATION_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<violation nc:operation="remove"/>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_STICKY_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-sticky-on><mac-address><sticky/></mac-address></mac-address-sticky-on>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_STICKY_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-sticky-on nc:operation="remove"/>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_AGING_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<aging><time>$minutes</time><type>$aging_type</type></aging>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_AGING_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<aging nc:operation="remove"/>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_MAC_ACCESS_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-config><mac-address>'
+        '<hw-address-access><hw-address>$hwaddr</hw-address></hw-address-access>'
+      '</mac-address></mac-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_MAC_ACCESS_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-config><mac-address>'
+        '<hw-address-access nc:operation="remove"><hw-address>$hwaddr</hw-address></hw-address-access>'
+      '</mac-address></mac-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_MAC_STICKY_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-config><mac-address>'
+        '<hw-address-access><hw-address>$hwaddr</hw-address><sticky>sticky</sticky></hw-address-access>'
+      '</mac-address></mac-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+L2_PORTSEC_MAC_STICKY_REMOVE_179 = (
+    '<switchport-config><switchport><port-security-config xmlns="$SW"><port-security>'
+      '<mac-address-config><mac-address>'
+        '<hw-address-access><hw-address>$hwaddr</hw-address><sticky nc:operation="remove"/></hw-address-access>'
+      '</mac-address></mac-address-config>'
+    '</port-security></port-security-config></switchport></switchport-config>'
+)
+
+L2_PROTECTED_179 = (
+    '<switchport-config><switchport><protected xmlns="$SW"/></switchport></switchport-config>'
+)
+L2_PROTECTED_REMOVE_179 = (
+    '<switchport-config><switchport><protected xmlns="$SW" nc:operation="remove"/></switchport></switchport-config>'
+)
+L2_HOST_179 = (
+    '<switchport-config><switchport><host xmlns="$SW"/></switchport></switchport-config>'
+)
+L2_HOST_REMOVE_179 = (
+    '<switchport-config><switchport><host xmlns="$SW" nc:operation="remove"/></switchport></switchport-config>'
+)
+L2_BLOCK_MULTICAST_179 = (
+    '<switchport-config><switchport><block xmlns="$SW"><multicast/></block></switchport></switchport-config>'
+)
+L2_BLOCK_MULTICAST_REMOVE_179 = (
+    '<switchport-config><switchport><block xmlns="$SW"><multicast nc:operation="remove"/></block></switchport></switchport-config>'
+)
+L2_BLOCK_UNICAST_179 = (
+    '<switchport-config><switchport><block xmlns="$SW"><unicast/></block></switchport></switchport-config>'
+)
+L2_BLOCK_UNICAST_REMOVE_179 = (
+    '<switchport-config><switchport><block xmlns="$SW"><unicast nc:operation="remove"/></block></switchport></switchport-config>'
+)
+L2_VEPA_179 = (
+    '<switchport-config><switchport><vepa xmlns="$SW"><enabled/></vepa></switchport></switchport-config>'
+)
+L2_VEPA_REMOVE_179 = (
+    '<switchport-config><switchport><vepa xmlns="$SW"><enabled nc:operation="remove"/></vepa></switchport></switchport-config>'
+)
+
+L2PT_TUNNEL_CORE_179            = '<l2protocol-tunnel><$proto/></l2protocol-tunnel>'
+L2PT_TUNNEL_CORE_REMOVE_179     = '<l2protocol-tunnel><$proto nc:operation="remove"/></l2protocol-tunnel>'
+L2PT_TUNNEL_P2P_179             = '<l2protocol-tunnel><point-to-point><$p2p_proto/></point-to-point></l2protocol-tunnel>'
+L2PT_TUNNEL_P2P_REMOVE_179      = '<l2protocol-tunnel><point-to-point><$p2p_proto nc:operation="remove"/></point-to-point></l2protocol-tunnel>'
+L2PT_TUNNEL_CORE_BLOCK_179      = '<l2protocol-tunnel>$core_block</l2protocol-tunnel>'
+L2PT_TUNNEL_CORE_BLOCK_REMOVE_179 = '<l2protocol-tunnel nc:operation="remove"/>'
+L2PT_TUNNEL_P2P_BLOCK_179       = '<l2protocol-tunnel><point-to-point>$p2p_block</point-to-point></l2protocol-tunnel>'
+L2PT_TUNNEL_P2P_BLOCK_REMOVE_179 = '<l2protocol-tunnel><point-to-point nc:operation="remove"/></l2protocol-tunnel>'
+
+L2PT_DROP_THRESHOLD_179 = (
+    '<l2protocol-tunnel><drop-threshold><$proto>$pps</$proto></drop-threshold></l2protocol-tunnel>'
+)
+L2PT_DROP_THRESHOLD_REMOVE_179 = (
+    '<l2protocol-tunnel><drop-threshold><$proto nc:operation="remove"/></drop-threshold></l2protocol-tunnel>'
+)
+L2PT_DROP_THRESHOLD_RATE_179 = (
+    '<l2protocol-tunnel><drop-threshold><packet-rate>$pps</packet-rate></drop-threshold></l2protocol-tunnel>'
+)
+L2PT_DROP_THRESHOLD_RATE_REMOVE_179 = (
+    '<l2protocol-tunnel><drop-threshold><packet-rate nc:operation="remove"/></drop-threshold></l2protocol-tunnel>'
+)
+L2PT_DROP_THRESHOLD_P2P_179 = (
+    '<l2protocol-tunnel><drop-threshold><point-to-point><$p2p_proto>$pps</$p2p_proto>'
+    '</point-to-point></drop-threshold></l2protocol-tunnel>'
+)
+L2PT_DROP_THRESHOLD_P2P_REMOVE_179 = (
+    '<l2protocol-tunnel><drop-threshold><point-to-point><$p2p_proto nc:operation="remove"/>'
+    '</point-to-point></drop-threshold></l2protocol-tunnel>'
+)
+L2PT_SHUTDOWN_THRESHOLD_179 = (
+    '<l2protocol-tunnel><shutdown-threshold><$proto>$pps</$proto></shutdown-threshold></l2protocol-tunnel>'
+)
+L2PT_SHUTDOWN_THRESHOLD_REMOVE_179 = (
+    '<l2protocol-tunnel><shutdown-threshold><$proto nc:operation="remove"/></shutdown-threshold></l2protocol-tunnel>'
+)
+L2PT_SHUTDOWN_THRESHOLD_RATE_179 = (
+    '<l2protocol-tunnel><shutdown-threshold><packet-rate>$pps</packet-rate></shutdown-threshold></l2protocol-tunnel>'
+)
+L2PT_SHUTDOWN_THRESHOLD_RATE_REMOVE_179 = (
+    '<l2protocol-tunnel><shutdown-threshold><packet-rate nc:operation="remove"/></shutdown-threshold></l2protocol-tunnel>'
+)
+L2PT_SHUTDOWN_THRESHOLD_P2P_179 = (
+    '<l2protocol-tunnel><shutdown-threshold><point-to-point><$p2p_proto>$pps</$p2p_proto>'
+    '</point-to-point></shutdown-threshold></l2protocol-tunnel>'
+)
+L2PT_SHUTDOWN_THRESHOLD_P2P_REMOVE_179 = (
+    '<l2protocol-tunnel><shutdown-threshold><point-to-point><$p2p_proto nc:operation="remove"/>'
+    '</point-to-point></shutdown-threshold></l2protocol-tunnel>'
+)
+
+L2PT_FORWARD_PROTOCOL_179        = '<l2protocol><forward><protocols>$proto</protocols></forward></l2protocol>'
+L2PT_FORWARD_PROTOCOL_REMOVE_179 = '<l2protocol><forward><protocols nc:operation="remove">$proto</protocols></forward></l2protocol>'
+L2PT_FORWARD_BLOCK_179           = '<l2protocol><forward>$proto_block</forward></l2protocol>'
+L2PT_FORWARD_BLOCK_REMOVE_179    = '<l2protocol><forward nc:operation="remove"/></l2protocol>'
+L2PT_FORWARD_DROP_179 = (
+    '<l2protocol><forward><drop-threshold><threshold-list>'
+    '<proto-type>$proto</proto-type><pps-num>$pps</pps-num>'
+    '</threshold-list></drop-threshold></forward></l2protocol>'
+)
+L2PT_FORWARD_DROP_REMOVE_179 = '<l2protocol><forward><drop-threshold nc:operation="remove"/></forward></l2protocol>'
+L2PT_FORWARD_SHUTDOWN_179 = (
+    '<l2protocol><forward><shutdown-threshold><threshold-list>'
+    '<proto-type>$proto</proto-type><pps-num>$pps</pps-num>'
+    '</threshold-list></shutdown-threshold></forward></l2protocol>'
+)
+L2PT_FORWARD_SHUTDOWN_REMOVE_179 = '<l2protocol><forward><shutdown-threshold nc:operation="remove"/></forward></l2protocol>'
+
+
+# ============================================================
+# 3. ARP + LINK TUNING
+# ============================================================
+
+ARP_TIMEOUT_179         = "<arp><timeout>$secs</timeout></arp>"
+ARP_TIMEOUT_REMOVE_179  = '<arp><timeout nc:operation="remove"/></arp>'
+ARP_SNAP_TRUE_179       = "<arp><snap/></arp>"
+ARP_SNAP_FALSE_179      = '<arp><snap nc:operation="remove"/></arp>'
+ARP_ENTRY_LIMIT_179 = (
+    "<arp><entries><interface-limit>"
+    "<entry-count>$count</entry-count><log>$log_secs</log>"
+    "</interface-limit></entries></arp>"
+)
+ARP_ENTRY_LIMIT_REMOVE_179 = '<arp><entries><interface-limit nc:operation="remove"/></entries></arp>'
+ARP_PACKET_PRIORITY_179 = "<arp><packet-priority><enable/></packet-priority></arp>"
+ARP_PACKET_PRIORITY_REMOVE_179 = (
+    '<arp><packet-priority><enable nc:operation="remove"/></packet-priority></arp>'
+)
+
+PQ_OUT_ENABLE_179        = "<priority-queue><out/></priority-queue>"
+PQ_OUT_ENABLE_REMOVE_179 = '<priority-queue><out nc:operation="remove"/></priority-queue>'
+PQ_COS_MAP_179 = (
+    "<priority-queue><cos-map><id>$qid</id>$cos_values_block</cos-map></priority-queue>"
+)
+PQ_COS_MAP_REMOVE_179 = '<priority-queue><cos-map nc:operation="remove"/></priority-queue>'
+RCV_QUEUE_COS_MAP_179 = (
+    "<rcv-queue><cos-map><queue-id>$qid</queue-id><threshold-id>$tid</threshold-id>"
+    "$cos_values_block</cos-map></rcv-queue>"
+)
+RCV_QUEUE_COS_MAP_REMOVE_179 = (
+    '<rcv-queue><cos-map nc:operation="remove">'
+    '<queue-id>$qid</queue-id><threshold-id>$tid</threshold-id></cos-map></rcv-queue>'
+)
+
+FLOWCONTROL_179        = "<flowcontrol><receive>$rx</receive><send>$tx</send></flowcontrol>"
+FLOWCONTROL_REMOVE_179 = '<flowcontrol nc:operation="remove"/>'
+HOLD_QUEUE_179 = (
+    "<hold-queue><direction>$direction</direction><queue-length>$qlen</queue-length></hold-queue>"
+)
+HOLD_QUEUE_REMOVE_179 = (
+    '<hold-queue nc:operation="remove"><direction>$direction</direction></hold-queue>'
+)
+
+LINK_BANDWIDTH_179        = "<bandwidth><kilobits>$kbps</kilobits></bandwidth>"
+LINK_BANDWIDTH_REMOVE_179 = '<bandwidth nc:operation="remove"/>'
+LINK_BANDWIDTH_QOS_REF_179        = "<bandwidth><qos-reference>$kbps</qos-reference></bandwidth>"
+LINK_BANDWIDTH_QOS_REF_REMOVE_179 = '<bandwidth><qos-reference nc:operation="remove"/></bandwidth>'
+
+DAMPENING_FULL_179 = (
+    "<dampening>"
+    "<dampening-time>$half_life</dampening-time>"
+    "<start-reusing-time>$reuse</start-reusing-time>"
+    "<start-supressing-time>$suppress</start-supressing-time>"
+    "<maximum-supressing-time>$max_suppress</maximum-supressing-time>"
+    "</dampening>"
+)
+DAMPENING_DEFAULT_179 = "<dampening/>"
+DAMPENING_REMOVE_179  = '<dampening nc:operation="remove"/>'
+
+SRLG_179        = "<srlg><gid>$srlg_values_block</gid></srlg>"
+SRLG_REMOVE_179 = '<srlg nc:operation="remove"/>'
+
+DOMAIN_NAME_179        = "<domain><name>$domain</name></domain>"
+DOMAIN_NAME_REMOVE_179 = '<domain><name nc:operation="remove"/></domain>'
+DOMAIN_PATH_179        = "<domain><path>$sp_path</path><path-id>$path_id</path-id></domain>"
+DOMAIN_PATH_REMOVE_179 = '<domain><path nc:operation="remove">$sp_path</path></domain>'
+
+# --- keepalive: choice { leaf keepalive | container keepalive-settings/keepalive } ---
+KEEPALIVE_SETTINGS_179 = (
+    "<keepalive-settings><keepalive>"
+    "<period>$period</period><retries>$retries</retries>"
+    "</keepalive></keepalive-settings>"
+)
+KEEPALIVE_SETTINGS_REMOVE_179 = '<keepalive-settings><keepalive nc:operation="remove"/></keepalive-settings>'
+KEEPALIVE_DISABLE_179 = "<keepalive>false</keepalive>"
+KEEPALIVE_FLAG_179    = "<keepalive>$flag</keepalive>"
+
+# --- logging ---
+LINK_LOGGING_LINK_STATUS_179 = (
+    "<logging><event><link-status-enable>$flag</link-status-enable></event></logging>"
+)
+LINK_LOGGING_LINK_STATUS_REMOVE_179 = (
+    '<logging><event><link-status-enable nc:operation="remove"/></event></logging>'
+)
+LINK_LOGGING_EVENT_179        = "<logging><event><$event/></event></logging>"
+LINK_LOGGING_EVENT_REMOVE_179 = '<logging><event><$event nc:operation="remove"/></event></logging>'
+LINK_LOGGING_EVENTS_BLOCK_179        = "<logging><event>$events_block</event></logging>"
+LINK_LOGGING_EVENTS_BLOCK_REMOVE_179 = '<logging><event nc:operation="remove"/></logging>'
+LINK_LOGGING_SPANNING_TREE_179 = (
+    "<logging><event><spanning-tree><status/></spanning-tree></event></logging>"
+)
+LINK_LOGGING_SPANNING_TREE_REMOVE_179 = (
+    '<logging><event><spanning-tree nc:operation="remove"/></event></logging>'
+)
+LINK_LOGGING_SUBIF_179 = (
+    "<logging><event><subif-link-status>$ignore_bulk_block</subif-link-status></event></logging>"
+)
+LINK_LOGGING_SUBIF_REMOVE_179 = (
+    '<logging><event><subif-link-status nc:operation="remove"/></event></logging>'
+)
+
+FAIR_QUEUE_179        = "<fair-queue><incomplete/></fair-queue>"
+FAIR_QUEUE_REMOVE_179 = '<fair-queue nc:operation="remove"/>'
+FAIR_QUEUE_CONF_179   = "<fair-queue-conf><fair-queue>$flag</fair-queue></fair-queue-conf>"
+
+# ============================================================
+# 4. IPv4
+# ============================================================
+
+IP4_PRIMARY_179 = (
+    "<ip><address><primary><address>$ip</address><mask>$mask</mask></primary></address></ip>"
+)
+IP4_PRIMARY_REMOVE_179 = '<ip><address><primary nc:operation="remove"/></address></ip>'
+IP4_SECONDARY_179 = (
+    "<ip><address><secondary><address>$ip</address><mask>$mask</mask><secondary/>"
+    "</secondary></address></ip>"
+)
+IP4_SECONDARY_REMOVE_179 = (
+    '<ip><address><secondary nc:operation="remove">'
+    '<address>$ip</address><mask>$mask</mask></secondary></address></ip>'
+)
+IP4_DHCP_179               = "<ip><address><dhcp/></address></ip>"
+IP4_DHCP_REMOVE_179        = '<ip><address><dhcp nc:operation="remove"/></address></ip>'
+IP4_NEGOTIATED_179         = "<ip><address><negotiated/></address></ip>"
+IP4_NEGOTIATED_REMOVE_179  = '<ip><address><negotiated nc:operation="remove"/></address></ip>'
+IP4_DHCP_OPTIONS_179 = "<ip><address><dhcp>$client_id_block$hostname_block</dhcp></address></ip>"
+IP4_UNNUMBERED_179         = "<ip><unnumbered>$src_if</unnumbered></ip>"
+IP4_UNNUMBERED_REMOVE_179  = '<ip><unnumbered nc:operation="remove"/></ip>'
+
+IP4_ACCESS_GROUP_IN_179 = (
+    "<ip><access-group><in><acl><acl-name>$acl</acl-name><in/></acl></in></access-group></ip>"
+)
+IP4_ACCESS_GROUP_IN_REMOVE_179 = '<ip><access-group><in nc:operation="remove"/></access-group></ip>'
+IP4_ACCESS_GROUP_OUT_179 = (
+    "<ip><access-group><out><acl><acl-name>$acl</acl-name><out/></acl></out></access-group></ip>"
+)
+IP4_ACCESS_GROUP_OUT_REMOVE_179 = '<ip><access-group><out nc:operation="remove"/></access-group></ip>'
+IP4_ACCESS_GROUP_COMMON_IN_179 = (
+    "<ip><access-group><in><common-acl><common>$common_acl</common>"
+    "<acl-name>$acl</acl-name><in/></common-acl></in></access-group></ip>"
+)
+IP4_ACCESS_GROUP_COMMON_IN_REMOVE_179 = (
+    '<ip><access-group><in><common-acl nc:operation="remove"/></in></access-group></ip>'
+)
+IP4_ACCESS_GROUP_COMMON_OUT_179 = (
+    "<ip><access-group><out><common-acl><common>$common_acl</common>"
+    "<acl-name>$acl</acl-name><out/></common-acl></out></access-group></ip>"
+)
+IP4_ACCESS_GROUP_COMMON_OUT_REMOVE_179 = (
+    '<ip><access-group><out><common-acl nc:operation="remove"/></out></access-group></ip>'
+)
+
+IP4_VRF_FORWARDING_179        = "<vrf><forwarding>$vrf</forwarding></vrf>"
+IP4_VRF_FORWARDING_REMOVE_179 = '<vrf><forwarding nc:operation="remove">$vrf</forwarding></vrf>'
+IP4_VRF_RECEIVE_179           = "<ip><vrf><receive>$vrf</receive></vrf></ip>"
+IP4_VRF_RECEIVE_REMOVE_179    = '<ip><vrf><receive nc:operation="remove">$vrf</receive></vrf></ip>'
+IP4_VRF_SITEMAP_179           = "<ip><vrf><sitemap>$route_map</sitemap></vrf></ip>"
+IP4_VRF_SITEMAP_REMOVE_179    = '<ip><vrf><sitemap nc:operation="remove">$route_map</sitemap></vrf></ip>'
+
+IP4_HELPER_179        = "<ip><helper-address><address>$helper</address></helper-address></ip>"
+IP4_HELPER_REMOVE_179 = (
+    '<ip><helper-address nc:operation="remove"><address>$helper</address></helper-address></ip>'
+)
+IP4_HELPER_GLOBAL_179 = (
+    "<ip><helper-address><address>$helper</address><global/></helper-address></ip>"
+)
+IP4_HELPER_GLOBAL_REMOVE_179 = (
+    '<ip><helper-address nc:operation="remove"><address>$helper</address><global/></helper-address></ip>'
+)
+IP4_HELPER_VRF_179 = (
+    "<ip><helper-address><address>$helper</address><vrf>$vrf</vrf></helper-address></ip>"
+)
+IP4_HELPER_VRF_REMOVE_179 = (
+    '<ip><helper-address nc:operation="remove"><address>$helper</address><vrf>$vrf</vrf></helper-address></ip>'
+)
+
+IP4_POLICY_ROUTE_MAP_179        = "<ip><policy><route-map>$route_map</route-map></policy></ip>"
+IP4_POLICY_ROUTE_MAP_REMOVE_179 = '<ip><policy><route-map nc:operation="remove"/></policy></ip>'
+
+IP4_PROXY_ARP_179              = "<ip><proxy-arp>$flag</proxy-arp></ip>"
+IP4_LOCAL_PROXY_ARP_179        = "<ip><local-proxy-arp/></ip>"
+IP4_LOCAL_PROXY_ARP_REMOVE_179 = '<ip><local-proxy-arp nc:operation="remove"/></ip>'
+IP4_REDIRECTS_179              = "<ip><redirects>$flag</redirects></ip>"
+IP4_CLEAR_DF_179               = "<ip><clear-dont-fragment>$flag</clear-dont-fragment></ip>"
+IP4_TCP_MSS_179                = "<ip><tcp><adjust-mss>$mss</adjust-mss></tcp></ip>"
+IP4_TCP_MSS_REMOVE_179         = '<ip><tcp><adjust-mss nc:operation="remove"/></tcp></ip>'
+IP4_MTU_179                    = "<ip><mtu>$ip_mtu</mtu></ip>"
+IP4_MTU_REMOVE_179             = '<ip><mtu nc:operation="remove"/></ip>'
+
+IP4_URPF_179 = (
+    "<ip><verify><unicast><source>"
+    "<reachable-via>$via</reachable-via>$allow_block"
+    "</source></unicast></verify></ip>"
+)
+IP4_URPF_REMOVE_179 = '<ip><verify nc:operation="remove"/></ip>'
+
+IP4_ARP_INSPECT_TRUST_179 = "<ip><arp><inspection><trust/></inspection></arp></ip>"
+IP4_ARP_INSPECT_TRUST_REMOVE_179 = (
+    '<ip><arp><inspection><trust nc:operation="remove"/></inspection></arp></ip>'
+)
+IP4_ARP_INSPECT_RATE_179 = "<ip><arp><inspection><limit><rate>$pps</rate></limit></inspection></arp></ip>"
+IP4_ARP_INSPECT_RATE_REMOVE_179 = (
+    '<ip><arp><inspection><limit nc:operation="remove"/></inspection></arp></ip>'
+)
+IP4_ARP_INSPECT_RATE_NONE_179 = "<ip><arp><inspection><limit><none/></limit></inspection></arp></ip>"
+
+IP4_DIRECTED_BROADCAST_179        = "<ip><directed-broadcast/></ip>"
+IP4_DIRECTED_BROADCAST_REMOVE_179 = '<ip><directed-broadcast nc:operation="remove"/></ip>'
+IP4_DIRECTED_BROADCAST_ACL_179 = (
+    "<ip><directed-broadcast><direct-broadcast>$acl</direct-broadcast></directed-broadcast></ip>"
+)
+
+
+# ============================================================
+# 5. IPv6
+# ============================================================
+
+IP6_ENABLE_179        = "<ipv6><enable/></ipv6>"
+IP6_ENABLE_REMOVE_179 = '<ipv6><enable nc:operation="remove"/></ipv6>'
+
+IP6_ADDRESS_PREFIX_179 = "<ipv6><address><prefix-list><prefix>$ipv6</prefix></prefix-list></address></ipv6>"
+IP6_ADDRESS_PREFIX_REMOVE_179 = (
+    '<ipv6><address><prefix-list nc:operation="remove"><prefix>$ipv6</prefix></prefix-list></address></ipv6>'
+)
+IP6_ADDRESS_EUI64_179 = (
+    "<ipv6><address><prefix-list><prefix>$ipv6</prefix><eui-64/></prefix-list></address></ipv6>"
+)
+IP6_ADDRESS_EUI64_REMOVE_179 = (
+    '<ipv6><address><prefix-list nc:operation="remove"><prefix>$ipv6</prefix><eui-64/></prefix-list></address></ipv6>'
+)
+IP6_ADDRESS_ANYCAST_179 = (
+    "<ipv6><address><prefix-list><prefix>$ipv6</prefix><anycast/></prefix-list></address></ipv6>"
+)
+IP6_ADDRESS_ANYCAST_REMOVE_179 = (
+    '<ipv6><address><prefix-list nc:operation="remove"><prefix>$ipv6</prefix><anycast/></prefix-list></address></ipv6>'
+)
+IP6_ADDRESS_LINK_LOCAL_179 = (
+    "<ipv6><address><link-local-address><address>$ll</address><link-local/>"
+    "</link-local-address></address></ipv6>"
+)
+IP6_ADDRESS_LINK_LOCAL_REMOVE_179 = (
+    '<ipv6><address><link-local-address nc:operation="remove"><address>$ll</address><link-local/>'
+    '</link-local-address></address></ipv6>'
+)
+IP6_ADDRESS_AUTOCONFIG_179        = "<ipv6><address><autoconfig/></address></ipv6>"
+IP6_ADDRESS_AUTOCONFIG_REMOVE_179 = '<ipv6><address><autoconfig nc:operation="remove"/></address></ipv6>'
+IP6_ADDRESS_AUTOCONFIG_DEFAULT_179 = "<ipv6><address><autoconfig><default/></autoconfig></address></ipv6>"
+IP6_ADDRESS_AUTOCONFIG_DEFAULT_REMOVE_179 = (
+    '<ipv6><address><autoconfig nc:operation="remove"><default/></autoconfig></address></ipv6>'
+)
+IP6_ADDRESS_DHCP_179        = "<ipv6><address><dhcp/></address></ipv6>"
+IP6_ADDRESS_DHCP_REMOVE_179 = '<ipv6><address><dhcp nc:operation="remove"/></address></ipv6>'
+IP6_ADDRESS_DHCP_RAPID_COMMIT_179 = "<ipv6><address><dhcp><rapid-commit/></dhcp></address></ipv6>"
+IP6_ADDRESS_DHCP_RAPID_COMMIT_REMOVE_179 = (
+    '<ipv6><address><dhcp nc:operation="remove"><rapid-commit/></dhcp></address></ipv6>'
+)
+IP6_ADDRESS_PREFIX_NAME_179 = (
+    "<ipv6><address><prefix-name><name>$pfx_name</name><prefix-options>"
+    "<ipv6-prefix><prefix>$ipv6</prefix></ipv6-prefix></prefix-options></prefix-name></address></ipv6>"
+)
+IP6_ADDRESS_PREFIX_NAME_REMOVE_179 = (
+    '<ipv6><address><prefix-name nc:operation="remove"><name>$pfx_name</name></prefix-name></address></ipv6>'
+)
+
+IP6_UNNUMBERED_179        = "<ipv6><unnumbered>$src_if</unnumbered></ipv6>"
+IP6_UNNUMBERED_REMOVE_179 = '<ipv6><unnumbered nc:operation="remove"/></ipv6>'
+IP6_MTU_179               = "<ipv6><mtu>$ip6_mtu</mtu></ipv6>"
+IP6_MTU_REMOVE_179        = '<ipv6><mtu nc:operation="remove"/></ipv6>'
+IP6_TCP_ADJUST_MSS_179        = "<ipv6><tcp><adjust-mss>$mss</adjust-mss></tcp></ipv6>"
+IP6_TCP_ADJUST_MSS_REMOVE_179 = '<ipv6><tcp><adjust-mss nc:operation="remove"/></tcp></ipv6>'
+IP6_TRAFFIC_FILTER_179 = (
+    "<ipv6><traffic-filter><direction>$direction</direction>"
+    "<access-list>$acl</access-list></traffic-filter></ipv6>"
+)
+IP6_TRAFFIC_FILTER_REMOVE_179 = (
+    '<ipv6><traffic-filter nc:operation="remove"><direction>$direction</direction>'
+    '<access-list>$acl</access-list></traffic-filter></ipv6>'
+)
+IP6_SOURCE_GUARD_179        = "<ipv6><source-guard>$policy_block</source-guard></ipv6>"
+IP6_SOURCE_GUARD_REMOVE_179 = '<ipv6><source-guard nc:operation="remove"/></ipv6>'
+
+
+# ============================================================
+# 6. ACCESS-SESSION
+# ============================================================
+
+AS_PORT_CONTROL_179 = "<access-session><port-control-config>$pc</port-control-config></access-session>"
+AS_PORT_CONTROL_REMOVE_179 = '<access-session><port-control-config nc:operation="remove"/></access-session>'
+AS_CONTROL_DIRECTION_179 = (
+    "<access-session><control-direction-config>$dir</control-direction-config></access-session>"
+)
+AS_CONTROL_DIRECTION_REMOVE_179 = (
+    '<access-session><control-direction-config nc:operation="remove"/></access-session>'
+)
+AS_HOST_MODE_179 = (
+    "<access-session><host-mode-config><modes>$hm</modes></host-mode-config></access-session>"
+)
+AS_HOST_MODE_REMOVE_179 = '<access-session><host-mode-config nc:operation="remove"/></access-session>'
+AS_HOST_MODE_PEER_179 = (
+    "<access-session><host-mode-config><modes>multi-host</modes><peer/></host-mode-config></access-session>"
+)
+AS_HOST_MODE_PEER_REMOVE_179 = (
+    '<access-session><host-mode-config nc:operation="remove"><peer/></host-mode-config></access-session>'
+)
+AS_MONITOR_179 = "<access-session><monitor>$flag</monitor></access-session>"
+
+
+# ============================================================
+# 7. STORM-CONTROL
+# ============================================================
+
+SC_ACTION_LEVEL_179    = "<storm-control><action><level>$pct</level></action></storm-control>"
+SC_ACTION_SHUTDOWN_179 = "<storm-control><action><shutdown/></action></storm-control>"
+SC_ACTION_TRAP_179     = "<storm-control><action><trap/></action></storm-control>"
+SC_ACTION_REMOVE_179   = '<storm-control><action nc:operation="remove"/></storm-control>'
+SC_THRESHOLD_PERCENT_179 = (
+    "<storm-control><$sc_type><level><threshold>"
+    "<rising-threshold>$rise</rising-threshold>"
+    "<falling-threshold>$fall</falling-threshold>"
+    "</threshold></level></$sc_type></storm-control>"
+)
+SC_THRESHOLD_REMOVE_179 = '<storm-control><$sc_type nc:operation="remove"/></storm-control>'
+SC_BROADCAST_INCLUDE_MULTICAST_179 = (
+    "<storm-control><broadcast><include><multicast/></include></broadcast></storm-control>"
+)
+SC_BROADCAST_INCLUDE_MULTICAST_REMOVE_179 = (
+    '<storm-control><broadcast><include nc:operation="remove"/></broadcast></storm-control>'
+)
+
+
+# ============================================================
+# 8. MACSEC  ($SW namespace)
+# ============================================================
+
+MSEC_ENABLE_179        = '<macsec xmlns="$SW"/>'
+MSEC_ENABLE_REMOVE_179 = '<macsec xmlns="$SW" nc:operation="remove"/>'
+MSEC_REPLAY_PROTECTION_179 = (
+    '<macsec-option xmlns="$SW"><macsec><replay-protection>'
+    '<window-size>$window</window-size>'
+    '</replay-protection></macsec></macsec-option>'
+)
+MSEC_REPLAY_PROTECTION_REMOVE_179 = (
+    '<macsec-option xmlns="$SW"><macsec><replay-protection nc:operation="remove"/></macsec></macsec-option>'
+)
+
+
+# ============================================================
+# 9. MISC — SUBSCRIBER
+# ============================================================
+
+MISC_SUBSCRIBER_INACTIVITY_179 = (
+    "<subscriber><aging><inactivity-timer><value>$secs</value>$probe_block"
+    "</inactivity-timer></aging></subscriber>"
+)
+MISC_SUBSCRIBER_INACTIVITY_REMOVE_179 = (
+    '<subscriber><aging><inactivity-timer nc:operation="remove"/></aging></subscriber>'
+)
+MISC_SUBSCRIBER_PROBE_179 = "<subscriber><aging><probe/></aging></subscriber>"
+MISC_SUBSCRIBER_PROBE_REMOVE_179 = '<subscriber><aging><probe nc:operation="remove"/></aging></subscriber>'
+
+
+# ============================================================
+# 10. PHYSICAL LAYER
+# ============================================================
+
+PHY_MEDIA_TYPE_179        = "<media-type>$media</media-type>"
+PHY_MEDIA_TYPE_REMOVE_179 = '<media-type nc:operation="remove"/>'
+PHY_FEC_179               = "<fec>$fec</fec>"
+PHY_FEC_REMOVE_179        = '<fec nc:operation="remove"/>'
+
+
+# ============================================================
+# 11. PORT-CHANNEL
+# ============================================================
+
+PO_LOAD_BALANCING_179        = "<load-balancing>$algo</load-balancing>"
+PO_LOAD_BALANCING_REMOVE_179 = '<load-balancing nc:operation="remove"/>'
+PO_MIN_LINKS_179             = "<port-channel><min-links>$min_links</min-links></port-channel>"
+PO_MIN_LINKS_REMOVE_179      = '<port-channel><min-links nc:operation="remove"/></port-channel>'
+PO_STANDALONE_DISABLE_179        = "<port-channel><standalone-disable/></port-channel>"
+PO_STANDALONE_DISABLE_REMOVE_179 = '<port-channel><standalone-disable nc:operation="remove"/></port-channel>'
+
+
+# ============================================================
+# 12. OTHER TYPE LEAVES
+# ============================================================
+
+TYPE_VLAN_AUTOSTATE_179 = "<autostate>$flag</autostate>"
+TYPE_TUNNEL_QOS_PRE_CLASSIFY_179 = "<qos><pre-classify/></qos>"
+TYPE_TUNNEL_QOS_PRE_CLASSIFY_REMOVE_179 = '<qos><pre-classify nc:operation="remove"/></qos>'
+
+
+# ============================================================
+# 13. NVE / VXLAN
+# ============================================================
+
+NVE_HOST_REACHABILITY_BGP_179 = "<host-reachability><protocol><bgp/></protocol></host-reachability>"
+NVE_HOST_REACHABILITY_BGP_REMOVE_179 = '<host-reachability nc:operation="remove"/>'
+NVE_SOURCE_INTERFACE_179 = "<source-interface><$src_type>$src_name</$src_type></source-interface>"
+NVE_SOURCE_INTERFACE_REMOVE_179 = '<source-interface nc:operation="remove"/>'
+NVE_MEMBER_VNI_VRF_179 = (
+    "<member-in-one-line><member><vni><vni-range>$vni</vni-range><vrf>$vrf</vrf>"
+    "</vni></member></member-in-one-line>"
+)
+NVE_MEMBER_VNI_VRF_REMOVE_179 = (
+    '<member-in-one-line><member nc:operation="remove"><vni><vni-range>$vni</vni-range></vni>'
+    '</member></member-in-one-line>'
+)
+NVE_MEMBER_VNI_MCAST_GROUP_179 = (
+    "<member><vni><vni-range>$vni</vni-range><mcast-group>"
+    "<multicast-group-min>$mc_min</multicast-group-min>$mc_max_block"
+    "</mcast-group></vni></member>"
+)
+NVE_MEMBER_VNI_MCAST_GROUP_REMOVE_179 = (
+    '<member><vni nc:operation="remove"><vni-range>$vni</vni-range></vni></member>'
+)
+
+
+# ================================================================
+# NOT PRESENT / NOT VERIFIABLE  (17.15 families with no 179 template)
+# ================================================================
+_ND_REASON = ("EXTERNAL", "ipv6/nd is an empty container in Cisco-IOS-XE-interfaces; "
+              "its children are augmented by Cisco-IOS-XE-nd (not supplied)")
+
+NOT_PRESENT = {
+    "IP6_ND_DAD_ATTEMPTS":               _ND_REASON,
+    "IP6_ND_DAD_ATTEMPTS_REMOVE":        _ND_REASON,
+    "IP6_ND_NUD_IGP":                    _ND_REASON,
+    "KEEPALIVE_TIMERS": (
+        "ABSENT", "no <keepalive-config> in 17.9; use KEEPALIVE_SETTINGS "
+        "(keepalive-settings/keepalive/{period,retries})"),
+    "PO_LOAD_BALANCE_HASH_ALGO": (
+        "ABSENT", "no load-balance-hash-algo leaf in 17.9; use PO_LOAD_BALANCING (vlan|flow)"),
+    "PO_LOAD_BALANCE_HASH_ALGO_REMOVE": (
+        "ABSENT", "no load-balance-hash-algo leaf in 17.9; use PO_LOAD_BALANCING (vlan|flow)"),
+    "IP6_VERIFY_UNICAST_REVERSE_PATH": (
+        "ABSENT", "ipv6 container has no 'verify' node in 17.9"),
+    "IP6_VERIFY_UNICAST_REVERSE_PATH_REMOVE": (
+        "ABSENT", "ipv6 container has no 'verify' node in 17.9"),
+    "ARP_INSPECT_RATE": 'not modelled on train 179',
+    "ARP_INSPECT_RATE_REMOVE": 'not modelled on train 179',
+    "ARP_INSPECT_TRUST": 'not modelled on train 179',
+    "ARP_INSPECT_TRUST_REMOVE": 'not modelled on train 179',
+    "ARP_SNAP": 'not modelled on train 179',
+    "ARP_SNAP_REMOVE": 'not modelled on train 179',
+    "AS_MONITOR_REMOVE": 'not modelled on train 179',
+    "CLEAR_DF": 'not modelled on train 179',
+    "CLEAR_DF_REMOVE": 'not modelled on train 179',
+    "DAMPENING": 'not modelled on train 179',
+    "DIRECTED_BROADCAST": 'not modelled on train 179',
+    "DIRECTED_BROADCAST_REMOVE": 'not modelled on train 179',
+    "FEC": 'not modelled on train 179',
+    "FEC_REMOVE": 'not modelled on train 179',
+    "HELPER_ADDRESS": 'not modelled on train 179',
+    "HELPER_ADDRESS_REMOVE": 'not modelled on train 179',
+    "IPV4_ACCESS_GROUP": 'not modelled on train 179',
+    "IPV4_ACCESS_GROUP_REMOVE": 'not modelled on train 179',
+    "IPV4_ADDRESS": 'not modelled on train 179',
+    "IPV4_ADDRESS_REMOVE": 'not modelled on train 179',
+    "IPV4_DHCP": 'not modelled on train 179',
+    "IPV4_DHCP_REMOVE": 'not modelled on train 179',
+    "IPV4_UNNUMBERED": 'not modelled on train 179',
+    "IPV4_UNNUMBERED_REMOVE": 'not modelled on train 179',
+    "IPV4_VRF_RECEIVE": 'not modelled on train 179',
+    "IPV4_VRF_RECEIVE_REMOVE": 'not modelled on train 179',
+    "IPV4_VRF_SITEMAP": 'not modelled on train 179',
+    "IPV4_VRF_SITEMAP_REMOVE": 'not modelled on train 179',
+    "IPV6_ADDRESS": 'not modelled on train 179',
+    "IPV6_ADDRESS_REMOVE": 'not modelled on train 179',
+    "IPV6_AUTOCONFIG": 'not modelled on train 179',
+    "IPV6_AUTOCONFIG_REMOVE": 'not modelled on train 179',
+    "IPV6_DHCP": 'not modelled on train 179',
+    "IPV6_DHCP_REMOVE": 'not modelled on train 179',
+    "IPV6_ENABLE": 'not modelled on train 179',
+    "IPV6_ENABLE_REMOVE": 'not modelled on train 179',
+    "IPV6_MTU": 'not modelled on train 179',
+    "IPV6_MTU_REMOVE": 'not modelled on train 179',
+    "IPV6_ND_DAD_ATTEMPTS": 'not modelled on train 179',
+    "IPV6_ND_DAD_ATTEMPTS_REMOVE": 'not modelled on train 179',
+    "IPV6_ND_NUD_IGP": 'not modelled on train 179',
+    "IPV6_ND_NUD_IGP_REMOVE": 'not modelled on train 179',
+    "IPV6_SOURCE_GUARD": 'not modelled on train 179',
+    "IPV6_SOURCE_GUARD_REMOVE": 'not modelled on train 179',
+    "IPV6_TCP_ADJUST_MSS": 'not modelled on train 179',
+    "IPV6_TCP_ADJUST_MSS_REMOVE": 'not modelled on train 179',
+    "IPV6_TRAFFIC_FILTER": 'not modelled on train 179',
+    "IPV6_TRAFFIC_FILTER_REMOVE": 'not modelled on train 179',
+    "IPV6_UNNUMBERED": 'not modelled on train 179',
+    "IPV6_UNNUMBERED_REMOVE": 'not modelled on train 179',
+    "IPV6_VERIFY_REVERSE_PATH": 'not modelled on train 179',
+    "IPV6_VERIFY_REVERSE_PATH_REMOVE": 'not modelled on train 179',
+    "IP_MTU": 'not modelled on train 179',
+    "IP_MTU_REMOVE": 'not modelled on train 179',
+    "KEEPALIVE": 'not modelled on train 179',
+    "KEEPALIVE_REMOVE": 'not modelled on train 179',
+    "L2PT_THRESHOLD": 'not modelled on train 179',
+    "L2PT_THRESHOLD_REMOVE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_AGING": 'not modelled on train 179',
+    "L2_PORT_SECURITY_AGING_REMOVE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_ENABLE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_ENABLE_REMOVE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_MAC": 'not modelled on train 179',
+    "L2_PORT_SECURITY_MAC_REMOVE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_MAX": 'not modelled on train 179',
+    "L2_PORT_SECURITY_MAX_REMOVE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_STICKY": 'not modelled on train 179',
+    "L2_PORT_SECURITY_STICKY_REMOVE": 'not modelled on train 179',
+    "L2_PORT_SECURITY_VIOLATION": 'not modelled on train 179',
+    "L2_PORT_SECURITY_VIOLATION_REMOVE": 'not modelled on train 179',
+    "L2_TRUNK_ALLOWED": 'not modelled on train 179',
+    "L2_TRUNK_ALLOWED_REMOVE": 'not modelled on train 179',
+    "L2_TRUNK_ENCAPSULATION": 'not modelled on train 179',
+    "L2_TRUNK_ENCAPSULATION_REMOVE": 'not modelled on train 179',
+    "L2_TRUNK_NATIVE_VLAN": 'not modelled on train 179',
+    "L2_TRUNK_NATIVE_VLAN_REMOVE": 'not modelled on train 179',
+    "L2_TRUNK_PRUNING": 'not modelled on train 179',
+    "L2_VOICE_VLAN": 'not modelled on train 179',
+    "L2_VOICE_VLAN_NAME": 'not modelled on train 179',
+    "LOCAL_PROXY_ARP": 'not modelled on train 179',
+    "LOCAL_PROXY_ARP_REMOVE": 'not modelled on train 179',
+    "LOGGING_EVENT": 'not modelled on train 179',
+    "LOGGING_EVENT_REMOVE": 'not modelled on train 179',
+    "LOGGING_LINK_STATUS": 'not modelled on train 179',
+    "LOGGING_LINK_STATUS_REMOVE": 'not modelled on train 179',
+    "LOGGING_SPANNING_TREE": 'not modelled on train 179',
+    "LOGGING_SPANNING_TREE_REMOVE": 'not modelled on train 179',
+    "LOGGING_SUBIF": 'not modelled on train 179',
+    "LOGGING_SUBIF_REMOVE": 'not modelled on train 179',
+    "MACSEC_ENABLE": 'not modelled on train 179',
+    "MACSEC_ENABLE_REMOVE": 'not modelled on train 179',
+    "MACSEC_REPLAY_PROTECTION": 'not modelled on train 179',
+    "MACSEC_REPLAY_PROTECTION_REMOVE": 'not modelled on train 179',
+    "MDIX": 'not modelled on train 179',
+    "MDIX_REMOVE": 'not modelled on train 179',
+    "MEDIA_TYPE": 'not modelled on train 179',
+    "MEDIA_TYPE_REMOVE": 'not modelled on train 179',
+    "NEGOTIATION_REMOVE": 'not modelled on train 179',
+    "POLICY_ROUTE_MAP": 'not modelled on train 179',
+    "POLICY_ROUTE_MAP_REMOVE": 'not modelled on train 179',
+    "PO_LOAD_BALANCE": 'not modelled on train 179',
+    "PO_LOAD_BALANCE_REMOVE": 'not modelled on train 179',
+    "PQ_OUT": 'not modelled on train 179',
+    "PQ_OUT_REMOVE": 'not modelled on train 179',
+    "PROXY_ARP": 'not modelled on train 179',
+    "PROXY_ARP_REMOVE": 'not modelled on train 179',
+    "REDIRECTS": 'not modelled on train 179',
+    "REDIRECTS_REMOVE": 'not modelled on train 179',
+    "STORM_CONTROL_ACTION": 'not modelled on train 179',
+    "STORM_CONTROL_ACTION_REMOVE": 'not modelled on train 179',
+    "STORM_CONTROL_BCAST_INCLUDE_MCAST": 'not modelled on train 179',
+    "STORM_CONTROL_BCAST_INCLUDE_MCAST_REMOVE": 'not modelled on train 179',
+    "STORM_CONTROL_THRESHOLD": 'not modelled on train 179',
+    "STORM_CONTROL_THRESHOLD_REMOVE": 'not modelled on train 179',
+    "SUBSCRIBER_INACTIVITY": 'not modelled on train 179',
+    "SUBSCRIBER_INACTIVITY_REMOVE": 'not modelled on train 179',
+    "SUBSCRIBER_PROBE": 'not modelled on train 179',
+    "SUBSCRIBER_PROBE_REMOVE": 'not modelled on train 179',
+    "SVI_PRIVATE_VLAN_MAPPING": 'not modelled on train 179',
+    "SVI_PRIVATE_VLAN_MAPPING_REMOVE": 'not modelled on train 179',
+    "TCP_ADJUST_MSS": 'not modelled on train 179',
+    "TCP_ADJUST_MSS_REMOVE": 'not modelled on train 179',
+    "TUNNEL_QOS_PRE_CLASSIFY": 'not modelled on train 179',
+    "TUNNEL_QOS_PRE_CLASSIFY_REMOVE": 'not modelled on train 179',
+    "URPF": 'not modelled on train 179',
+    "URPF_REMOVE": 'not modelled on train 179',
+    "VLAN_AUTOSTATE": 'not modelled on train 179',
+    "VLAN_AUTOSTATE_REMOVE": 'not modelled on train 179',
+    "VLAN_CREATE": 'not modelled on train 179',
+    "VLAN_CREATE_REMOVE": 'not modelled on train 179',
+    "VLAN_DELETE": 'not modelled on train 179',
+    "VLAN_DELETE_REMOVE": 'not modelled on train 179',
+    "VLAN_NAME": 'not modelled on train 179',
+    "VLAN_NAME_REMOVE": 'not modelled on train 179',
+    "VLAN_REMOTE_SPAN": 'not modelled on train 179',
+    "VLAN_REMOTE_SPAN_REMOVE": 'not modelled on train 179',
+    "VLAN_STATE": 'not modelled on train 179',
+    "VLAN_STATE_REMOVE": 'not modelled on train 179',
+    "VLAN_UNI": 'not modelled on train 179',
+    "VLAN_UNI_REMOVE": 'not modelled on train 179',
+    "VRF_FORWARDING": 'not modelled on train 179',
+    "VRF_FORWARDING_REMOVE": 'not modelled on train 179',
+}
+
+
+# bodies that sit directly under <native> (no interface scaffold)
+
+# ================================================================
+# TEMPLATE REGISTRY  (base label -> {train: template})
+# ================================================================
+_TRAINS = ("179",)
+
+
+def _t(**kw):
+    return {v: kw.get(v) for v in _TRAINS}
+
+
+TEMPLATES = {
+    # §1 general attributes
+    "DESCRIPTION":                     _t(**{"179": DESCRIPTION_179}),
+    "DESCRIPTION_REMOVE":              _t(**{"179": DESCRIPTION_REMOVE_179}),
+    "EXPORT_NAME":                     _t(**{"179": EXPORT_NAME_179}),
+    "EXPORT_NAME_REMOVE":              _t(**{"179": EXPORT_NAME_REMOVE_179}),
+    "MAC_ADDRESS":                     _t(**{"179": MAC_ADDRESS_179}),
+    "MAC_ADDRESS_REMOVE":              _t(**{"179": MAC_ADDRESS_REMOVE_179}),
+    "SHUTDOWN":                        _t(**{"179": SHUTDOWN_179}),
+    "SHUTDOWN_REMOVE":                 _t(**{"179": SHUTDOWN_REMOVE_179}),
+    "MTU":                             _t(**{"179": MTU_179}),
+    "MTU_REMOVE":                      _t(**{"179": MTU_REMOVE_179}),
+    "DELAY":                           _t(**{"179": DELAY_179}),
+    "DELAY_REMOVE":                    _t(**{"179": DELAY_REMOVE_179}),
+    "LOAD_INTERVAL":                   _t(**{"179": LOAD_INTERVAL_179}),
+    "LOAD_INTERVAL_REMOVE":            _t(**{"179": LOAD_INTERVAL_REMOVE_179}),
+    "MAX_BANDWIDTH":                   _t(**{"179": MAX_BANDWIDTH_179}),
+    "MAX_BANDWIDTH_REMOVE":            _t(**{"179": MAX_BANDWIDTH_REMOVE_179}),
+    "NEGOTIATION":                     _t(**{"179": NEGOTIATION_179}),
+    "GEN_MDIX":                        _t(**{"179": GEN_MDIX_179}),
+    "SERVICE_INSERTION":               _t(**{"179": SERVICE_INSERTION_179}),
+    "SERVICE_INSERTION_REMOVE":        _t(**{"179": SERVICE_INSERTION_REMOVE_179}),
+    "QOS_TRUST":                       _t(**{"179": QOS_TRUST_179}),
+    "QOS_TRUST_REMOVE":                _t(**{"179": QOS_TRUST_REMOVE_179}),
+
+    # §2 L2 switching
+    "L2_SWITCHPORT_TRUE":              _t(**{"179": L2_SWITCHPORT_TRUE_179}),
+    "L2_SWITCHPORT_FALSE":             _t(**{"179": L2_SWITCHPORT_FALSE_179}),
+    "L2_DTP_DISABLE_TRUE":             _t(**{"179": L2_DTP_DISABLE_TRUE_179}),
+    "L2_DTP_DISABLE_FALSE":            _t(**{"179": L2_DTP_DISABLE_FALSE_179}),
+    "L2_VOICE_FULL":                   _t(**{"179": L2_VOICE_FULL_179}),
+    "L2_VOICE_FULL_REMOVE":            _t(**{"179": L2_VOICE_FULL_REMOVE_179}),
+    "L2_VOICE_VLAN_ID":                _t(**{"179": L2_VOICE_VLAN_ID_179}),
+    "L2_VOICE_VLAN_DOT1P":             _t(**{"179": L2_VOICE_VLAN_DOT1P_179}),
+    "L2_VOICE_VLAN_NONE":              _t(**{"179": L2_VOICE_VLAN_NONE_179}),
+    "L2_VOICE_VLAN_UNTAGGED":          _t(**{"179": L2_VOICE_VLAN_UNTAGGED_179}),
+    "L2_VOICE_VLAN_REMOVE":            _t(**{"179": L2_VOICE_VLAN_REMOVE_179}),
+    "L2_VOICE_DETECT":                 _t(**{"179": L2_VOICE_DETECT_179}),
+    "L2_VOICE_DETECT_REMOVE":          _t(**{"179": L2_VOICE_DETECT_REMOVE_179}),
+    "L2_ACCESS_VLAN":                  _t(**{"179": L2_ACCESS_VLAN_179}),
+    "L2_ACCESS_VLAN_REMOVE":           _t(**{"179": L2_ACCESS_VLAN_REMOVE_179}),
+    "L2_TRUNK_PRUNING_ADD":            _t(**{"179": L2_TRUNK_PRUNING_ADD_179}),
+    "L2_TRUNK_PRUNING_REMOVE":         _t(**{"179": L2_TRUNK_PRUNING_REMOVE_179}),
+    "L2_TRUNK_PRUNING_REPLACE":        _t(**{"179": L2_TRUNK_PRUNING_REPLACE_179}),
+    "L2_TRUNK_PRUNING_NONE":           _t(**{"179": L2_TRUNK_PRUNING_NONE_179}),
+    "L2_TRUNK_PRUNING_REMOVE_ALL":     _t(**{"179": L2_TRUNK_PRUNING_REMOVE_ALL_179}),
+    "PVLAN_GLOBAL":                    _t(**{"179": PVLAN_GLOBAL_179}),
+    "PVLAN_GLOBAL_PRIMARY":            _t(**{"179": PVLAN_GLOBAL_PRIMARY_179}),
+    "PVLAN_GLOBAL_ASSOC":              _t(**{"179": PVLAN_GLOBAL_ASSOC_179}),
+    "PVLAN_GLOBAL_REMOVE":             _t(**{"179": PVLAN_GLOBAL_REMOVE_179}),
+    "PVLAN_SECONDARY":                 _t(**{"179": PVLAN_SECONDARY_179}),
+    "PVLAN_SECONDARY_REMOVE":          _t(**{"179": PVLAN_SECONDARY_REMOVE_179}),
+    "PVLAN_HOST_ASSOC":                _t(**{"179": PVLAN_HOST_ASSOC_179}),
+    "PVLAN_HOST_ASSOC_REMOVE":         _t(**{"179": PVLAN_HOST_ASSOC_REMOVE_179}),
+    "PVLAN_PROMISCUOUS_MAP":           _t(**{"179": PVLAN_PROMISCUOUS_MAP_179}),
+    "PVLAN_PROMISCUOUS_MAP_REMOVE":    _t(**{"179": PVLAN_PROMISCUOUS_MAP_REMOVE_179}),
+    "L2_PORTSEC_ENABLE":               _t(**{"179": L2_PORTSEC_ENABLE_179}),
+    "L2_PORTSEC_ENABLE_REMOVE":        _t(**{"179": L2_PORTSEC_ENABLE_REMOVE_179}),
+    "L2_PORTSEC_MAX":                  _t(**{"179": L2_PORTSEC_MAX_179}),
+    "L2_PORTSEC_MAX_VLAN":             _t(**{"179": L2_PORTSEC_MAX_VLAN_179}),
+    "L2_PORTSEC_MAX_REMOVE":           _t(**{"179": L2_PORTSEC_MAX_REMOVE_179}),
+    "L2_PORTSEC_VIOLATION":            _t(**{"179": L2_PORTSEC_VIOLATION_179}),
+    "L2_PORTSEC_VIOLATION_SHUTDOWN_VLAN": _t(**{"179": L2_PORTSEC_VIOLATION_SHUTDOWN_VLAN_179}),
+    "L2_PORTSEC_VIOLATION_REMOVE":     _t(**{"179": L2_PORTSEC_VIOLATION_REMOVE_179}),
+    "L2_PORTSEC_STICKY":               _t(**{"179": L2_PORTSEC_STICKY_179}),
+    "L2_PORTSEC_STICKY_REMOVE":        _t(**{"179": L2_PORTSEC_STICKY_REMOVE_179}),
+    "L2_PORTSEC_AGING":                _t(**{"179": L2_PORTSEC_AGING_179}),
+    "L2_PORTSEC_AGING_REMOVE":         _t(**{"179": L2_PORTSEC_AGING_REMOVE_179}),
+    "L2_PORTSEC_MAC_ACCESS":           _t(**{"179": L2_PORTSEC_MAC_ACCESS_179}),
+    "L2_PORTSEC_MAC_ACCESS_REMOVE":    _t(**{"179": L2_PORTSEC_MAC_ACCESS_REMOVE_179}),
+    "L2_PORTSEC_MAC_STICKY":           _t(**{"179": L2_PORTSEC_MAC_STICKY_179}),
+    "L2_PORTSEC_MAC_STICKY_REMOVE":    _t(**{"179": L2_PORTSEC_MAC_STICKY_REMOVE_179}),
+    "L2_PROTECTED":                    _t(**{"179": L2_PROTECTED_179}),
+    "L2_PROTECTED_REMOVE":             _t(**{"179": L2_PROTECTED_REMOVE_179}),
+    "L2_HOST":                         _t(**{"179": L2_HOST_179}),
+    "L2_HOST_REMOVE":                  _t(**{"179": L2_HOST_REMOVE_179}),
+    "L2_BLOCK_MULTICAST":              _t(**{"179": L2_BLOCK_MULTICAST_179}),
+    "L2_BLOCK_MULTICAST_REMOVE":       _t(**{"179": L2_BLOCK_MULTICAST_REMOVE_179}),
+    "L2_BLOCK_UNICAST":                _t(**{"179": L2_BLOCK_UNICAST_179}),
+    "L2_BLOCK_UNICAST_REMOVE":         _t(**{"179": L2_BLOCK_UNICAST_REMOVE_179}),
+    "L2_VEPA":                         _t(**{"179": L2_VEPA_179}),
+    "L2_VEPA_REMOVE":                  _t(**{"179": L2_VEPA_REMOVE_179}),
+    "L2PT_TUNNEL_CORE":                _t(**{"179": L2PT_TUNNEL_CORE_179}),
+    "L2PT_TUNNEL_CORE_REMOVE":         _t(**{"179": L2PT_TUNNEL_CORE_REMOVE_179}),
+    "L2PT_TUNNEL_P2P":                 _t(**{"179": L2PT_TUNNEL_P2P_179}),
+    "L2PT_TUNNEL_P2P_REMOVE":          _t(**{"179": L2PT_TUNNEL_P2P_REMOVE_179}),
+    "L2PT_TUNNEL_CORE_BLOCK":          _t(**{"179": L2PT_TUNNEL_CORE_BLOCK_179}),
+    "L2PT_TUNNEL_CORE_BLOCK_REMOVE":   _t(**{"179": L2PT_TUNNEL_CORE_BLOCK_REMOVE_179}),
+    "L2PT_TUNNEL_P2P_BLOCK":           _t(**{"179": L2PT_TUNNEL_P2P_BLOCK_179}),
+    "L2PT_TUNNEL_P2P_BLOCK_REMOVE":    _t(**{"179": L2PT_TUNNEL_P2P_BLOCK_REMOVE_179}),
+    "L2PT_DROP_THRESHOLD":             _t(**{"179": L2PT_DROP_THRESHOLD_179}),
+    "L2PT_DROP_THRESHOLD_REMOVE":      _t(**{"179": L2PT_DROP_THRESHOLD_REMOVE_179}),
+    "L2PT_DROP_THRESHOLD_RATE":        _t(**{"179": L2PT_DROP_THRESHOLD_RATE_179}),
+    "L2PT_DROP_THRESHOLD_RATE_REMOVE": _t(**{"179": L2PT_DROP_THRESHOLD_RATE_REMOVE_179}),
+    "L2PT_DROP_THRESHOLD_P2P":         _t(**{"179": L2PT_DROP_THRESHOLD_P2P_179}),
+        "L2PT_DROP_THRESHOLD_P2P_REMOVE":  _t(**{"179": L2PT_DROP_THRESHOLD_P2P_REMOVE_179}),
+    "L2PT_SHUTDOWN_THRESHOLD":         _t(**{"179": L2PT_SHUTDOWN_THRESHOLD_179}),
+    "L2PT_SHUTDOWN_THRESHOLD_REMOVE":  _t(**{"179": L2PT_SHUTDOWN_THRESHOLD_REMOVE_179}),
+    "L2PT_SHUTDOWN_THRESHOLD_RATE":    _t(**{"179": L2PT_SHUTDOWN_THRESHOLD_RATE_179}),
+    "L2PT_SHUTDOWN_THRESHOLD_RATE_REMOVE": _t(**{"179": L2PT_SHUTDOWN_THRESHOLD_RATE_REMOVE_179}),
+    "L2PT_SHUTDOWN_THRESHOLD_P2P":     _t(**{"179": L2PT_SHUTDOWN_THRESHOLD_P2P_179}),
+    "L2PT_SHUTDOWN_THRESHOLD_P2P_REMOVE": _t(**{"179": L2PT_SHUTDOWN_THRESHOLD_P2P_REMOVE_179}),
+    "L2PT_FORWARD_PROTOCOL":           _t(**{"179": L2PT_FORWARD_PROTOCOL_179}),
+    "L2PT_FORWARD_PROTOCOL_REMOVE":    _t(**{"179": L2PT_FORWARD_PROTOCOL_REMOVE_179}),
+    "L2PT_FORWARD_BLOCK":              _t(**{"179": L2PT_FORWARD_BLOCK_179}),
+    "L2PT_FORWARD_BLOCK_REMOVE":       _t(**{"179": L2PT_FORWARD_BLOCK_REMOVE_179}),
+    "L2PT_FORWARD_DROP":               _t(**{"179": L2PT_FORWARD_DROP_179}),
+    "L2PT_FORWARD_DROP_REMOVE":        _t(**{"179": L2PT_FORWARD_DROP_REMOVE_179}),
+    "L2PT_FORWARD_SHUTDOWN":           _t(**{"179": L2PT_FORWARD_SHUTDOWN_179}),
+    "L2PT_FORWARD_SHUTDOWN_REMOVE":    _t(**{"179": L2PT_FORWARD_SHUTDOWN_REMOVE_179}),
+
+    # §3 ARP + link tuning
+    "ARP_TIMEOUT":                     _t(**{"179": ARP_TIMEOUT_179}),
+    "ARP_TIMEOUT_REMOVE":              _t(**{"179": ARP_TIMEOUT_REMOVE_179}),
+    "ARP_SNAP_TRUE":                   _t(**{"179": ARP_SNAP_TRUE_179}),
+    "ARP_SNAP_FALSE":                  _t(**{"179": ARP_SNAP_FALSE_179}),
+    "ARP_ENTRY_LIMIT":                 _t(**{"179": ARP_ENTRY_LIMIT_179}),
+    "ARP_ENTRY_LIMIT_REMOVE":          _t(**{"179": ARP_ENTRY_LIMIT_REMOVE_179}),
+    "ARP_PACKET_PRIORITY":             _t(**{"179": ARP_PACKET_PRIORITY_179}),
+    "ARP_PACKET_PRIORITY_REMOVE":      _t(**{"179": ARP_PACKET_PRIORITY_REMOVE_179}),
+    "PQ_OUT_ENABLE":                   _t(**{"179": PQ_OUT_ENABLE_179}),
+    "PQ_OUT_ENABLE_REMOVE":            _t(**{"179": PQ_OUT_ENABLE_REMOVE_179}),
+    "PQ_COS_MAP":                      _t(**{"179": PQ_COS_MAP_179}),
+    "PQ_COS_MAP_REMOVE":               _t(**{"179": PQ_COS_MAP_REMOVE_179}),
+    "RCV_QUEUE_COS_MAP":               _t(**{"179": RCV_QUEUE_COS_MAP_179}),
+    "RCV_QUEUE_COS_MAP_REMOVE":        _t(**{"179": RCV_QUEUE_COS_MAP_REMOVE_179}),
+    "FLOWCONTROL":                     _t(**{"179": FLOWCONTROL_179}),
+    "FLOWCONTROL_REMOVE":              _t(**{"179": FLOWCONTROL_REMOVE_179}),
+    "HOLD_QUEUE":                      _t(**{"179": HOLD_QUEUE_179}),
+    "HOLD_QUEUE_REMOVE":               _t(**{"179": HOLD_QUEUE_REMOVE_179}),
+    "LINK_BANDWIDTH":                  _t(**{"179": LINK_BANDWIDTH_179}),
+    "LINK_BANDWIDTH_REMOVE":           _t(**{"179": LINK_BANDWIDTH_REMOVE_179}),
+    "LINK_BANDWIDTH_QOS_REF":          _t(**{"179": LINK_BANDWIDTH_QOS_REF_179}),
+    "LINK_BANDWIDTH_QOS_REF_REMOVE":   _t(**{"179": LINK_BANDWIDTH_QOS_REF_REMOVE_179}),
+    "DAMPENING_FULL":                  _t(**{"179": DAMPENING_FULL_179}),
+    "DAMPENING_DEFAULT":               _t(**{"179": DAMPENING_DEFAULT_179}),
+    "DAMPENING_REMOVE":                _t(**{"179": DAMPENING_REMOVE_179}),
+    "SRLG":                            _t(**{"179": SRLG_179}),
+    "SRLG_REMOVE":                     _t(**{"179": SRLG_REMOVE_179}),
+    "DOMAIN_NAME":                     _t(**{"179": DOMAIN_NAME_179}),
+    "DOMAIN_NAME_REMOVE":              _t(**{"179": DOMAIN_NAME_REMOVE_179}),
+    "DOMAIN_PATH":                     _t(**{"179": DOMAIN_PATH_179}),
+    "DOMAIN_PATH_REMOVE":              _t(**{"179": DOMAIN_PATH_REMOVE_179}),
+    "KEEPALIVE_SETTINGS":              _t(**{"179": KEEPALIVE_SETTINGS_179}),
+    "KEEPALIVE_SETTINGS_REMOVE":       _t(**{"179": KEEPALIVE_SETTINGS_REMOVE_179}),
+    "KEEPALIVE_DISABLE":               _t(**{"179": KEEPALIVE_DISABLE_179}),
+    "KEEPALIVE_FLAG":                  _t(**{"179": KEEPALIVE_FLAG_179}),
+    "KEEPALIVE_TIMERS":                _t(),          # not in 17.9 — see NOT_PRESENT
+    "LINK_LOGGING_LINK_STATUS":        _t(**{"179": LINK_LOGGING_LINK_STATUS_179}),
+    "LINK_LOGGING_LINK_STATUS_REMOVE": _t(**{"179": LINK_LOGGING_LINK_STATUS_REMOVE_179}),
+    "LINK_LOGGING_EVENT":              _t(**{"179": LINK_LOGGING_EVENT_179}),
+    "LINK_LOGGING_EVENT_REMOVE":       _t(**{"179": LINK_LOGGING_EVENT_REMOVE_179}),
+    "LINK_LOGGING_EVENTS_BLOCK":       _t(**{"179": LINK_LOGGING_EVENTS_BLOCK_179}),
+    "LINK_LOGGING_EVENTS_BLOCK_REMOVE":_t(**{"179": LINK_LOGGING_EVENTS_BLOCK_REMOVE_179}),
+    "LINK_LOGGING_SPANNING_TREE":      _t(**{"179": LINK_LOGGING_SPANNING_TREE_179}),
+    "LINK_LOGGING_SPANNING_TREE_REMOVE": _t(**{"179": LINK_LOGGING_SPANNING_TREE_REMOVE_179}),
+    "LINK_LOGGING_SUBIF":              _t(**{"179": LINK_LOGGING_SUBIF_179}),
+    "LINK_LOGGING_SUBIF_REMOVE":       _t(**{"179": LINK_LOGGING_SUBIF_REMOVE_179}),
+    "FAIR_QUEUE":                      _t(**{"179": FAIR_QUEUE_179}),
+    "FAIR_QUEUE_REMOVE":               _t(**{"179": FAIR_QUEUE_REMOVE_179}),
+    "FAIR_QUEUE_CONF":                 _t(**{"179": FAIR_QUEUE_CONF_179}),
+
+    # §4 IPv4
+    "IP4_PRIMARY":                     _t(**{"179": IP4_PRIMARY_179}),
+    "IP4_PRIMARY_REMOVE":              _t(**{"179": IP4_PRIMARY_REMOVE_179}),
+    "IP4_SECONDARY":                   _t(**{"179": IP4_SECONDARY_179}),
+    "IP4_SECONDARY_REMOVE":            _t(**{"179": IP4_SECONDARY_REMOVE_179}),
+    "IP4_DHCP":                        _t(**{"179": IP4_DHCP_179}),
+    "IP4_DHCP_REMOVE":                 _t(**{"179": IP4_DHCP_REMOVE_179}),
+    "IP4_NEGOTIATED":                  _t(**{"179": IP4_NEGOTIATED_179}),
+    "IP4_NEGOTIATED_REMOVE":           _t(**{"179": IP4_NEGOTIATED_REMOVE_179}),
+    "IP4_DHCP_OPTIONS":                _t(**{"179": IP4_DHCP_OPTIONS_179}),
+    "IP4_UNNUMBERED":                  _t(**{"179": IP4_UNNUMBERED_179}),
+    "IP4_UNNUMBERED_REMOVE":           _t(**{"179": IP4_UNNUMBERED_REMOVE_179}),
+    "IP4_ACCESS_GROUP_IN":             _t(**{"179": IP4_ACCESS_GROUP_IN_179}),
+    "IP4_ACCESS_GROUP_IN_REMOVE":      _t(**{"179": IP4_ACCESS_GROUP_IN_REMOVE_179}),
+    "IP4_ACCESS_GROUP_OUT":            _t(**{"179": IP4_ACCESS_GROUP_OUT_179}),
+    "IP4_ACCESS_GROUP_OUT_REMOVE":     _t(**{"179": IP4_ACCESS_GROUP_OUT_REMOVE_179}),
+    "IP4_ACCESS_GROUP_COMMON_IN":      _t(**{"179": IP4_ACCESS_GROUP_COMMON_IN_179}),
+    "IP4_ACCESS_GROUP_COMMON_IN_REMOVE": _t(**{"179": IP4_ACCESS_GROUP_COMMON_IN_REMOVE_179}),
+    "IP4_ACCESS_GROUP_COMMON_OUT":     _t(**{"179": IP4_ACCESS_GROUP_COMMON_OUT_179}),
+    "IP4_ACCESS_GROUP_COMMON_OUT_REMOVE": _t(**{"179": IP4_ACCESS_GROUP_COMMON_OUT_REMOVE_179}),
+    "IP4_VRF_FORWARDING":              _t(**{"179": IP4_VRF_FORWARDING_179}),
+    "IP4_VRF_FORWARDING_REMOVE":       _t(**{"179": IP4_VRF_FORWARDING_REMOVE_179}),
+    "IP4_VRF_RECEIVE":                 _t(**{"179": IP4_VRF_RECEIVE_179}),
+    "IP4_VRF_RECEIVE_REMOVE":          _t(**{"179": IP4_VRF_RECEIVE_REMOVE_179}),
+    "IP4_VRF_SITEMAP":                 _t(**{"179": IP4_VRF_SITEMAP_179}),
+    "IP4_VRF_SITEMAP_REMOVE":          _t(**{"179": IP4_VRF_SITEMAP_REMOVE_179}),
+    "IP4_HELPER":                      _t(**{"179": IP4_HELPER_179}),
+    "IP4_HELPER_REMOVE":               _t(**{"179": IP4_HELPER_REMOVE_179}),
+    "IP4_HELPER_GLOBAL":               _t(**{"179": IP4_HELPER_GLOBAL_179}),
+    "IP4_HELPER_GLOBAL_REMOVE":        _t(**{"179": IP4_HELPER_GLOBAL_REMOVE_179}),
+    "IP4_HELPER_VRF":                  _t(**{"179": IP4_HELPER_VRF_179}),
+    "IP4_HELPER_VRF_REMOVE":           _t(**{"179": IP4_HELPER_VRF_REMOVE_179}),
+    "IP4_POLICY_ROUTE_MAP":            _t(**{"179": IP4_POLICY_ROUTE_MAP_179}),
+    "IP4_POLICY_ROUTE_MAP_REMOVE":     _t(**{"179": IP4_POLICY_ROUTE_MAP_REMOVE_179}),
+    "IP4_PROXY_ARP":                   _t(**{"179": IP4_PROXY_ARP_179}),
+    "IP4_LOCAL_PROXY_ARP":             _t(**{"179": IP4_LOCAL_PROXY_ARP_179}),
+    "IP4_LOCAL_PROXY_ARP_REMOVE":      _t(**{"179": IP4_LOCAL_PROXY_ARP_REMOVE_179}),
+    "IP4_REDIRECTS":                   _t(**{"179": IP4_REDIRECTS_179}),
+    "IP4_CLEAR_DF":                    _t(**{"179": IP4_CLEAR_DF_179}),
+    "IP4_TCP_MSS":                     _t(**{"179": IP4_TCP_MSS_179}),
+    "IP4_TCP_MSS_REMOVE":              _t(**{"179": IP4_TCP_MSS_REMOVE_179}),
+    "IP4_MTU":                         _t(**{"179": IP4_MTU_179}),
+    "IP4_MTU_REMOVE":                  _t(**{"179": IP4_MTU_REMOVE_179}),
+    "IP4_URPF":                        _t(**{"179": IP4_URPF_179}),
+    "IP4_URPF_REMOVE":                 _t(**{"179": IP4_URPF_REMOVE_179}),
+    "IP4_ARP_INSPECT_TRUST":           _t(**{"179": IP4_ARP_INSPECT_TRUST_179}),
+    "IP4_ARP_INSPECT_TRUST_REMOVE":    _t(**{"179": IP4_ARP_INSPECT_TRUST_REMOVE_179}),
+    "IP4_ARP_INSPECT_RATE":            _t(**{"179": IP4_ARP_INSPECT_RATE_179}),
+    "IP4_ARP_INSPECT_RATE_REMOVE":     _t(**{"179": IP4_ARP_INSPECT_RATE_REMOVE_179}),
+    "IP4_ARP_INSPECT_RATE_NONE":       _t(**{"179": IP4_ARP_INSPECT_RATE_NONE_179}),
+    "IP4_DIRECTED_BROADCAST":          _t(**{"179": IP4_DIRECTED_BROADCAST_179}),
+    "IP4_DIRECTED_BROADCAST_REMOVE":   _t(**{"179": IP4_DIRECTED_BROADCAST_REMOVE_179}),
+    "IP4_DIRECTED_BROADCAST_ACL":      _t(**{"179": IP4_DIRECTED_BROADCAST_ACL_179}),
+
+    # §5 IPv6
+    "IP6_ENABLE":                      _t(**{"179": IP6_ENABLE_179}),
+    "IP6_ENABLE_REMOVE":               _t(**{"179": IP6_ENABLE_REMOVE_179}),
+    "IP6_ADDRESS_PREFIX":              _t(**{"179": IP6_ADDRESS_PREFIX_179}),
+    "IP6_ADDRESS_PREFIX_REMOVE":       _t(**{"179": IP6_ADDRESS_PREFIX_REMOVE_179}),
+    "IP6_ADDRESS_EUI64":               _t(**{"179": IP6_ADDRESS_EUI64_179}),
+    "IP6_ADDRESS_EUI64_REMOVE":        _t(**{"179": IP6_ADDRESS_EUI64_REMOVE_179}),
+    "IP6_ADDRESS_ANYCAST":             _t(**{"179": IP6_ADDRESS_ANYCAST_179}),
+    "IP6_ADDRESS_ANYCAST_REMOVE":      _t(**{"179": IP6_ADDRESS_ANYCAST_REMOVE_179}),
+    "IP6_ADDRESS_LINK_LOCAL":          _t(**{"179": IP6_ADDRESS_LINK_LOCAL_179}),
+    "IP6_ADDRESS_LINK_LOCAL_REMOVE":   _t(**{"179": IP6_ADDRESS_LINK_LOCAL_REMOVE_179}),
+    "IP6_ADDRESS_AUTOCONFIG":          _t(**{"179": IP6_ADDRESS_AUTOCONFIG_179}),
+    "IP6_ADDRESS_AUTOCONFIG_REMOVE":   _t(**{"179": IP6_ADDRESS_AUTOCONFIG_REMOVE_179}),
+    "IP6_ADDRESS_AUTOCONFIG_DEFAULT":  _t(**{"179": IP6_ADDRESS_AUTOCONFIG_DEFAULT_179}),
+    "IP6_ADDRESS_AUTOCONFIG_DEFAULT_REMOVE": _t(**{"179": IP6_ADDRESS_AUTOCONFIG_DEFAULT_REMOVE_179}),
+    "IP6_ADDRESS_DHCP":                _t(**{"179": IP6_ADDRESS_DHCP_179}),
+    "IP6_ADDRESS_DHCP_REMOVE":         _t(**{"179": IP6_ADDRESS_DHCP_REMOVE_179}),
+    "IP6_ADDRESS_DHCP_RAPID_COMMIT":   _t(**{"179": IP6_ADDRESS_DHCP_RAPID_COMMIT_179}),
+    "IP6_ADDRESS_DHCP_RAPID_COMMIT_REMOVE": _t(**{"179": IP6_ADDRESS_DHCP_RAPID_COMMIT_REMOVE_179}),
+    "IP6_ADDRESS_PREFIX_NAME":         _t(**{"179": IP6_ADDRESS_PREFIX_NAME_179}),
+    "IP6_ADDRESS_PREFIX_NAME_REMOVE":  _t(**{"179": IP6_ADDRESS_PREFIX_NAME_REMOVE_179}),
+    "IP6_UNNUMBERED":                  _t(**{"179": IP6_UNNUMBERED_179}),
+    "IP6_UNNUMBERED_REMOVE":           _t(**{"179": IP6_UNNUMBERED_REMOVE_179}),
+    "IP6_MTU":                         _t(**{"179": IP6_MTU_179}),
+    "IP6_MTU_REMOVE":                  _t(**{"179": IP6_MTU_REMOVE_179}),
+    "IP6_ND_DAD_ATTEMPTS":             _t(),          # not verifiable — see NOT_PRESENT
+    "IP6_ND_DAD_ATTEMPTS_REMOVE":      _t(),          # not verifiable — see NOT_PRESENT
+    "IP6_ND_NUD_IGP":                  _t(),          # not verifiable — see NOT_PRESENT
+    "IP6_TCP_ADJUST_MSS":              _t(**{"179": IP6_TCP_ADJUST_MSS_179}),
+    "IP6_TCP_ADJUST_MSS_REMOVE":       _t(**{"179": IP6_TCP_ADJUST_MSS_REMOVE_179}),
+    "IP6_TRAFFIC_FILTER":              _t(**{"179": IP6_TRAFFIC_FILTER_179}),
+    "IP6_TRAFFIC_FILTER_REMOVE":       _t(**{"179": IP6_TRAFFIC_FILTER_REMOVE_179}),
+    "IP6_SOURCE_GUARD":                _t(**{"179": IP6_SOURCE_GUARD_179}),
+    "IP6_SOURCE_GUARD_REMOVE":         _t(**{"179": IP6_SOURCE_GUARD_REMOVE_179}),
+    "IP6_VERIFY_UNICAST_REVERSE_PATH": _t(),          # not in 17.9 — see NOT_PRESENT
+    "IP6_VERIFY_UNICAST_REVERSE_PATH_REMOVE": _t(),   # not in 17.9 — see NOT_PRESENT
+
+    # §6 access-session
+    "AS_PORT_CONTROL":                 _t(**{"179": AS_PORT_CONTROL_179}),
+    "AS_PORT_CONTROL_REMOVE":          _t(**{"179": AS_PORT_CONTROL_REMOVE_179}),
+    "AS_CONTROL_DIRECTION":            _t(**{"179": AS_CONTROL_DIRECTION_179}),
+    "AS_CONTROL_DIRECTION_REMOVE":     _t(**{"179": AS_CONTROL_DIRECTION_REMOVE_179}),
+    "AS_HOST_MODE":                    _t(**{"179": AS_HOST_MODE_179}),
+    "AS_HOST_MODE_REMOVE":             _t(**{"179": AS_HOST_MODE_REMOVE_179}),
+    "AS_HOST_MODE_PEER":               _t(**{"179": AS_HOST_MODE_PEER_179}),
+    "AS_HOST_MODE_PEER_REMOVE":        _t(**{"179": AS_HOST_MODE_PEER_REMOVE_179}),
+    "AS_MONITOR":                      _t(**{"179": AS_MONITOR_179}),
+
+    # §7 storm-control
+    "SC_ACTION_LEVEL":                 _t(**{"179": SC_ACTION_LEVEL_179}),
+    "SC_ACTION_SHUTDOWN":              _t(**{"179": SC_ACTION_SHUTDOWN_179}),
+    "SC_ACTION_TRAP":                  _t(**{"179": SC_ACTION_TRAP_179}),
+    "SC_ACTION_REMOVE":                _t(**{"179": SC_ACTION_REMOVE_179}),
+    "SC_THRESHOLD_PERCENT":            _t(**{"179": SC_THRESHOLD_PERCENT_179}),
+    "SC_THRESHOLD_REMOVE":             _t(**{"179": SC_THRESHOLD_REMOVE_179}),
+    "SC_BROADCAST_INCLUDE_MULTICAST":  _t(**{"179": SC_BROADCAST_INCLUDE_MULTICAST_179}),
+    "SC_BROADCAST_INCLUDE_MULTICAST_REMOVE": _t(**{"179": SC_BROADCAST_INCLUDE_MULTICAST_REMOVE_179}),
+
+    # §8 macsec
+    "MSEC_ENABLE":                     _t(**{"179": MSEC_ENABLE_179}),
+    "MSEC_ENABLE_REMOVE":              _t(**{"179": MSEC_ENABLE_REMOVE_179}),
+    "MSEC_REPLAY_PROTECTION":          _t(**{"179": MSEC_REPLAY_PROTECTION_179}),
+    "MSEC_REPLAY_PROTECTION_REMOVE":   _t(**{"179": MSEC_REPLAY_PROTECTION_REMOVE_179}),
+
+    # §9 subscriber
+    "MISC_SUBSCRIBER_INACTIVITY":        _t(**{"179": MISC_SUBSCRIBER_INACTIVITY_179}),
+    "MISC_SUBSCRIBER_INACTIVITY_REMOVE": _t(**{"179": MISC_SUBSCRIBER_INACTIVITY_REMOVE_179}),
+    "MISC_SUBSCRIBER_PROBE":             _t(**{"179": MISC_SUBSCRIBER_PROBE_179}),
+    "MISC_SUBSCRIBER_PROBE_REMOVE":      _t(**{"179": MISC_SUBSCRIBER_PROBE_REMOVE_179}),
+
+    # §10 physical layer
+    "PHY_MEDIA_TYPE":                  _t(**{"179": PHY_MEDIA_TYPE_179}),
+    "PHY_MEDIA_TYPE_REMOVE":           _t(**{"179": PHY_MEDIA_TYPE_REMOVE_179}),
+    "PHY_FEC":                         _t(**{"179": PHY_FEC_179}),
+    "PHY_FEC_REMOVE":                  _t(**{"179": PHY_FEC_REMOVE_179}),
+
+    # §11 port-channel
+    "PO_LOAD_BALANCING":               _t(**{"179": PO_LOAD_BALANCING_179}),
+    "PO_LOAD_BALANCING_REMOVE":        _t(**{"179": PO_LOAD_BALANCING_REMOVE_179}),
+    "PO_LOAD_BALANCE_HASH_ALGO":       _t(),          # not in 17.9 — see NOT_PRESENT
+    "PO_LOAD_BALANCE_HASH_ALGO_REMOVE":_t(),          # not in 17.9 — see NOT_PRESENT
+    "PO_MIN_LINKS":                    _t(**{"179": PO_MIN_LINKS_179}),
+    "PO_MIN_LINKS_REMOVE":             _t(**{"179": PO_MIN_LINKS_REMOVE_179}),
+    "PO_STANDALONE_DISABLE":           _t(**{"179": PO_STANDALONE_DISABLE_179}),
+    "PO_STANDALONE_DISABLE_REMOVE":    _t(**{"179": PO_STANDALONE_DISABLE_REMOVE_179}),
+
+    # §12 type leaves
+    "TYPE_VLAN_AUTOSTATE":             _t(**{"179": TYPE_VLAN_AUTOSTATE_179}),
+    "TYPE_TUNNEL_QOS_PRE_CLASSIFY":    _t(**{"179": TYPE_TUNNEL_QOS_PRE_CLASSIFY_179}),
+    "TYPE_TUNNEL_QOS_PRE_CLASSIFY_REMOVE": _t(**{"179": TYPE_TUNNEL_QOS_PRE_CLASSIFY_REMOVE_179}),
+
+    # §13 NVE
+    "NVE_HOST_REACHABILITY_BGP":        _t(**{"179": NVE_HOST_REACHABILITY_BGP_179}),
+    "NVE_HOST_REACHABILITY_BGP_REMOVE": _t(**{"179": NVE_HOST_REACHABILITY_BGP_REMOVE_179}),
+    "NVE_SOURCE_INTERFACE":             _t(**{"179": NVE_SOURCE_INTERFACE_179}),
+    "NVE_SOURCE_INTERFACE_REMOVE":      _t(**{"179": NVE_SOURCE_INTERFACE_REMOVE_179}),
+    "NVE_MEMBER_VNI_VRF":               _t(**{"179": NVE_MEMBER_VNI_VRF_179}),
+    "NVE_MEMBER_VNI_VRF_REMOVE":        _t(**{"179": NVE_MEMBER_VNI_VRF_REMOVE_179}),
+    "NVE_MEMBER_VNI_MCAST_GROUP":       _t(**{"179": NVE_MEMBER_VNI_MCAST_GROUP_179}),
+    "NVE_MEMBER_VNI_MCAST_GROUP_REMOVE":_t(**{"179": NVE_MEMBER_VNI_MCAST_GROUP_REMOVE_179}),
+}
+
+NATIVE_SCOPED = frozenset(
+    n for n in TEMPLATES
+    if n.startswith(("PVLAN_GLOBAL", "PVLAN_SECONDARY", "VLAN_"))
+)
+
+
+
+# ================================================================
+# RESOLVERS  (used by the Nornir engine)
+# ================================================================
+
+def resolve(base, train="179"):
+    """Return the template for base/train. Raises with status + reason when unavailable."""
+    if base not in TEMPLATES:
+        raise KeyError(f"{base!r} not in 17.9 catalogue ({len(TEMPLATES)} families)")
+    tpl = TEMPLATES[base].get(train)
+    if tpl is None:
+        status, why = NOT_PRESENT.get(base, ("ABSENT", "no template"))
+        raise KeyError(f"{base!r} not available on train {train!r} [{status}]: {why}")
+    return tpl
+
+
+def families():
+    for name in sorted(TEMPLATES):
+        yield name
+
+
+def supported_on(train="179"):
+    for name, slots in TEMPLATES.items():
+        if slots.get(train) is not None:
+            yield name
+
+
+def not_present(status=None):
+    """Yield (family, status, reason); optionally filter by EXTERNAL / ABSENT."""
+    for name in sorted(NOT_PRESENT):
+        st, why = NOT_PRESENT[name]
+        if status is None or st == status:
+            yield name, st, why
+
+
+def on_off_pairs(train="179"):
+    for base in TEMPLATES:
+        if base.endswith("_REMOVE"):
+            continue
+        twin = base + "_REMOVE"
+        if twin in TEMPLATES and TEMPLATES[twin].get(train) is not None \
+                and TEMPLATES[base].get(train) is not None:
+            yield (base, twin)
+
+
+def flag_symmetric(train="179"):
+    for base, slots in TEMPLATES.items():
+        tpl = slots.get(train)
+        if tpl and "$flag" in tpl:
+            yield base
+
+
+# ================================================================
+# STARTUP PLACEHOLDER VALIDATION
+# ================================================================
+
+_ALLOWED = {
+    "parent", "name", "desc", "export", "mac",
+    "voice_vlan", "access_vlan", "vlans", "primary_vlan", "secondary_vlan", "secondary_vlans",
+    "vlan_kind", "pvlan_type", "max", "violation", "minutes", "aging_type", "hwaddr", "window",
+    "mtu", "delay", "seconds", "percent", "flag", "svc", "device",
+    "proto", "p2p_proto", "pps", "core_block", "p2p_block", "proto_block",
+    "secs", "count", "log_secs", "qid", "tid", "cos_values_block",
+    "direction", "qlen", "rx", "tx", "kbps",
+    "half_life", "reuse", "suppress", "max_suppress",
+    "srlg_values_block", "domain", "sp_path", "path_id",
+    "period", "retries",
+    "event", "events_block", "ignore_bulk_block",
+    "ip", "mask", "src_if", "acl", "common_acl", "vrf", "route_map",
+    "helper", "via", "allow_block", "ip_mtu", "mss",
+    "client_id_block", "hostname_block",
+    "ipv6", "ll", "pfx_name", "ip6_mtu", "policy_block",
+    "pc", "dir", "hm",
+    "pct", "sc_type", "rise", "fall",
+    "probe_block",
+    "media", "fec", "algo", "min_links",
+    "src_type", "src_name", "vni", "mc_min", "mc_max_block",
+    "N", "NC", "SW", "ST", "VLAN",
+}
+
+_PLACEHOLDER_RE = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def _validate_all():
+    errors = []
+    for family, slots in TEMPLATES.items():
+        for train, tpl in slots.items():
+            if tpl is None:
+                continue
+            for ph in _PLACEHOLDER_RE.findall(tpl):
+                if ph not in _ALLOWED:
+                    errors.append(f"{family}[{train}] unknown placeholder ${ph}")
+    if errors:
+        raise ValueError(
+            "interface_attrs_179: placeholder validation failed:\n  "
+            + "\n  ".join(errors)
+        )
+
+_validate_all()
+
+
+# ================================================================
+# RUNTIME HELPERS
+# ================================================================
+
+NS = {
+    "N":    "http://cisco.com/ns/yang/Cisco-IOS-XE-native",
+    "NC":   "urn:ietf:params:xml:ns:netconf:base:1.0",
+    "SW":   "http://cisco.com/ns/yang/Cisco-IOS-XE-switch",
+    "ST":   "http://cisco.com/ns/yang/Cisco-IOS-XE-spanning-tree",
+    "VLAN": "http://cisco.com/ns/yang/Cisco-IOS-XE-vlan",
+}
+
+
+def render(base, train="179", **kw):
+    """Render one family. Namespaces injected; every other placeholder must be in kw.
+    Booleans are passed as 'true'/'false'. Raises KeyError on unavailable families."""
+    return _Template(resolve(base, train)).substitute({**NS, **kw})
+
+
+def wrap_interface(parent, name, *bodies, strict=False):
+    """<interface> scaffold for interface-scoped bodies (everything except PVLAN_GLOBAL*/PVLAN_SECONDARY*)."""
+    return (f'<interface xmlns="{NS["N"]}" xmlns:nc="{NS["NC"]}"><{parent}>'
+            f'<name>{name}</name>{"".join(bodies)}</{parent}></interface>')
+
+
+def wrap_native(*bodies):
+    """<native> scaffold for NATIVE-scoped bodies (PVLAN_GLOBAL*, PVLAN_SECONDARY*)."""
+    return f'<native xmlns="{NS["N"]}" xmlns:nc="{NS["NC"]}">{"".join(bodies)}</native>'
+
+
+def _selftest():
+    """Render every present family with dummy values and check it is well-formed XML."""
+    import xml.dom.minidom as md
+
+    class _Dummy(dict):
+        def __missing__(self, key):
+            return "x"
+
+    ok = 0
+    for fam in supported_on():
+        xml = _Template(resolve(fam)).substitute(_Dummy(NS))
+        md.parseString(f'<r xmlns:nc="{NS["NC"]}">{xml}</r>')
+        ok += 1
+    for fam, st, why in not_present():
+        try:
+            resolve(fam)
+        except KeyError:
+            continue
+        raise AssertionError(f"{fam} flagged but resolvable")
+    print(f"selftest OK: {ok} families render to well-formed XML; "
+          f"{len(NOT_PRESENT)} flagged; {len(list(on_off_pairs()))} on/off pairs")
+          
+def build_config(base, parent=None, name=None, train="179", strict=False, **kw):
+    """Complete NETCONF <config> payload for one family; picks the right scaffold automatically."""
+    body = render(base, train, **kw)
+    if base in NATIVE_SCOPED:
+        inner = wrap_native(body)
+    else:
+        if not parent or name is None:
+            raise ValueError(f"{base} is interface-scoped: parent and name are required")
+        inner = wrap_interface(parent, name, body, strict=strict)
+    return f'<config xmlns="{NS["NC"]}">{inner}</config>'
+
+
+if __name__ == "__main__":
+    _selftest()

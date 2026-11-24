@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Global Settings</title>
+    <style>
+        /* ============================================================
+           GLOBAL RESET
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                              url('file:///D:/sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        /* ============================================================
+           MAIN LAYOUT
+           ============================================================ */
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .show-settings {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-interface {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            margin: 20px 0 10px 0;
+            color: #00e5ff;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            padding-bottom: 4px;
+        }
+
+        /* ============================================================
+           FIELDSET / LEGEND / RADIO GROUP
+           ============================================================ */
+        fieldset {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+           FORM ELEMENTS
+           ============================================================ */
+        .form p {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            outline: none;
+        }
+
+        select {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Global Settings</h1>
+    </header>
+
+    <main>
+        <section class="show-settings">
+            <h2>Configured Settings</h2>
+            <ul id="settings" class="settings">
+                <!-- JavaScript will insert settings rows here dynamically -->
+            </ul>
+        </section>
+
+        <aside class="add-interface">
+            <h2>Configure Global Settings</h2>
+
+            <form class="form" id="add-settings-form">
+
+                <!-- ============================================================
+                     DEVICE IDENTITY
+                     ============================================================ -->
+                <h3>Device Identity</h3>
+
+                <p>
+                    <label for="site-id">Site ID</label>
+                    <input type="text" id="site-id" name="site-id"
+                           placeholder="e.g., site_0001" required>
+                </p>
+
+                <p>
+                    <label for="device-type">Device Type</label>
+                    <input type="text" id="device-type" name="device-type"
+                           placeholder="e.g., router, switch, firewall" required>
+                </p>
+
+                <p>
+                    <label for="device-role">Device Role</label>
+                    <input type="text" id="device-role" name="device-role"
+                           placeholder="e.g., core, distribution, access">
+                </p>
+
+                <p>
+                    <label for="platform">Device Platform</label>
+                    <input type="text" id="platform" name="platform"
+                           placeholder="e.g., CISCO-IOS-XE">
+                </p>
+
+                <p>
+                    <label for="hostname">Hostname</label>
+                    <input type="text" id="hostname" name="hostname"
+                           placeholder="e.g., NRB-RT-001">
+                </p>
+
+                <!-- ============================================================
+                     DOMAIN CONFIGURATION
+                     ============================================================ -->
+                <h3>Domain Configuration</h3>
+
+                <p>
+                    <label for="domain">Domain Name</label>
+                    <input type="text" id="domain" name="domain"
+                           placeholder="e.g., kingstar.company.com">
+                </p>
+
+                <!-- ============================================================
+                     VTP CONFIGURATION
+                     ============================================================ -->
+                <h3>VTP Configuration</h3>
+
+                <fieldset>
+                    <legend>VTP Version</legend>
+                    <label>
+                        <input type="radio" name="version" value="1" checked>
+                        Version 1
+                    </label>
+                    <label>
+                        <input type="radio" name="version" value="2">
+                        Version 2
+                    </label>
+                    <label>
+                        <input type="radio" name="version" value="3">
+                        Version 3 (modern &amp; recommended)
+                    </label>
+                </fieldset>
+
+                <fieldset>
+                    <legend>VTP Mode</legend>
+                    <label>
+                        <input type="radio" name="mode" value="server" checked>
+                        Server
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="client">
+                        Client
+                    </label>
+                    <label>
+                        <input type="radio" name="mode" value="transparent">
+                        Transparent
+                    </label>
+                </fieldset>
+
+                <p>
+                    <label for="secret">VTP Secret</label>
+                    <input type="password" id="secret" name="secret"
+                           minlength="4" maxlength="12"
+                           placeholder="e.g., *********">
+                </p>
+
+                <p>
+                    <label for="primary">VTP Primary Hostname (if v3 used)</label>
+                    <input type="text" id="primary" name="primary"
+                           placeholder="e.g., swtch-001">
+                </p>
+
+                <p>
+                    <label for="secondary">VTP Secondary Hostname (if v3 used)</label>
+                    <input type="text" id="secondary" name="secondary"
+                           placeholder="e.g., swtch-002">
+                </p>
+
+                <!-- ============================================================
+                     NTP CLIENT CONFIGURATION
+                     ============================================================ -->
+                <h3>NTP Client Configuration</h3>
+
+                <p>
+                    <label for="zone-client">Local Timezone</label>
+                    <input type="text" id="zone-client" name="zone_client"
+                           placeholder="e.g., EAT 3">
+                </p>
+
+                <p>
+                    <label for="ntp">NTP Server IP</label>
+                    <input type="text" id="ntp" name="ntp"
+                           placeholder="e.g., 192.168.100.1 or hostname">
+                </p>
+
+                <!-- ============================================================
+                     NTP SERVER CONFIGURATION
+                     ============================================================ -->
+                <h3>NTP Server Configuration</h3>
+
+                <p>
+                    <label for="zone-server">Local Timezone</label>
+                    <input type="text" id="zone-server" name="zone_server"
+                           placeholder="e.g., EAT 3">
+                </p>
+
+                <p>
+                    <label for="name-server">Public NTP Server (optional)</label>
+                    <input type="text" id="name-server" name="name-server"
+                           placeholder="e.g., time1.google.com">
+                </p>
+
+                <p>
+                    <label for="str">Stratum Number</label>
+                    <input type="number" id="str" name="str" min="1" max="15"
+                           placeholder="e.g., 1 – 15">
+                </p>
+
+                <!-- ============================================================
+                     DNS CONFIGURATION
+                     ============================================================ -->
+                <h3>DNS Configuration</h3>
+
+                <p>
+                    <label for="dns1">DNS IP 1</label>
+                    <input type="text" id="dns1" name="dns1"
+                           placeholder="e.g., 8.8.8.8">
+                </p>
+
+                <p>
+                    <label for="dns2">DNS IP 2</label>
+                    <input type="text" id="dns2" name="dns2"
+                           placeholder="e.g., 1.1.1.1">
+                </p>
+
+                <!-- ============================================================
+                     HOSTNAMES (DYNAMIC ROWS)
+                     ============================================================ -->
+                <h3>Hostnames Configuration</h3>
+
+                <fieldset>
+                    <legend>Hostnames</legend>
+
+                    <div id="hostname-rows">
+                        <!-- Dynamic hostname rows will be injected here -->
+                    </div>
+
+                    <button type="button" id="add-hostname-btn"
+                            style="margin-top: 10px; background: #27ae60; color: white;">
+                        + Add Hostname
+                    </button>
+                </fieldset>
+
+                <button type="submit">Configure Device(s)</button>
+            </form>
+        </aside>
+    </main>
+</body>
+</html>

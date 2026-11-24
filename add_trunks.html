@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Trunks/Access</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .trunks-available {
+            flex: 1;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-trunk-panel {
+            flex: 1;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+        }
+
+        fieldset {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"],
+        fieldset input[type="checkbox"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        input:focus, select:focus { border: 2px solid #00e5ff; }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover:not(:disabled) { background-color: #ffffff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status-line {
+            font-size: 0.85rem;
+            color: #00e5ff;
+            margin-top: 8px;
+            min-height: 1.2em;
+        }
+
+        /* Two big mode buttons */
+        .mode-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 30px 20px;
+            font-size: 1.2rem;
+            background: rgba(0,229,255,0.15);
+            border: 2px solid #00e5ff;
+            color: #00e5ff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            background: #00e5ff;
+            color: #003366;
+        }
+
+        .vlan-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        /* Interface block styling for the picker */
+        .iface-block {
+            padding-left: 20px;
+            margin-top: 6px;
+        }
+
+        .iface-block label {
+            font-weight: normal;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Trunks / Access</h1>
+    </header>
+
+    <main>
+        <section class="trunks-available">
+            <h2>Configured Ports</h2>
+            <ul id="trunks" class="trunks"></ul>
+        </section>
+
+        <aside class="add-trunk-panel">
+            <h2>Add Trunk / Access</h2>
+
+            <form id="add-trunk-form" method="post" action="">
+
+                <!-- ============ STEP 1: PICKER ============ -->
+                <div id="picker">
+                    <label>Profile (cred_id):
+                        <input type="text" id="cred_id" placeholder="e.g. 3" required>
+                    </label>
+                    <label>Site No:
+                        <input type="text" id="site" placeholder="e.g. site_001" required>
+                    </label>
+                    <label>Device Type:
+                        <input type="text" id="device_type" placeholder="e.g. switch or router" required>
+                    </label>
+                    <label>Platform:
+                        <input type="text" id="platform" placeholder="e.g. CISCO-IOS-XE">
+                    </label>
+                    <label>Hostname:
+                        <input type="text" id="hostname" placeholder="e.g. NRB-RT-001">
+                    </label>
+
+                    <button type="button" id="loadDevicesBtn">Load Devices</button>
+
+                    <div id="devicesBox"></div>
+
+                    <button type="button" id="proceedBtn" disabled>Proceed &rarr;</button>
+                </div>
+
+                <!-- ============ STEP 2: MODE CHOICE ============ -->
+                <div id="modeChoice" style="display:none">
+                    <p style="margin-bottom:12px; font-weight:bold;">
+                        Choose the switchport mode to apply on the selected interfaces:
+                    </p>
+                    <div class="mode-buttons">
+                        <button type="button" class="mode-btn" data-mode="access">
+                            Access
+                        </button>
+                        <button type="button" class="mode-btn" data-mode="trunk">
+                            Trunk
+                        </button>
+                    </div>
+                    <button type="button" id="backToPickerBtn1"
+                            style="background:#888; color:white;">
+                        &larr; Back to Picker
+                    </button>
+                </div>
+
+                <!-- ============ STEP 3a: ACCESS FORM ============ -->
+                <div id="accessForm" style="display:none">
+                    <fieldset>
+                        <legend>Access Port Settings</legend>
+                        <label>Access VLAN:
+                            <input type="text" id="access_vlan" placeholder="e.g. 20">
+                        </label>
+                    </fieldset>
+
+                    <button type="button" id="saveAccessBtn">Configure Access Port(s)</button>
+                    <button type="button" id="backToModeAccess"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Mode Choice
+                    </button>
+                    <div id="saveStatusAccess" class="status-line"></div>
+                </div>
+
+                <!-- ============ STEP 3b: TRUNK FORM ============ -->
+                <div id="trunkForm" style="display:none">
+                    <fieldset>
+                        <legend>VLAN Action</legend>
+                        <label>
+                            <input type="radio" name="vlan_action" value="" checked>
+                            Set (replace all) — leave blank
+                        </label>
+                        <label>
+                            <input type="radio" name="vlan_action" value="add">
+                            Add to existing
+                        </label>
+                        <label>
+                            <input type="radio" name="vlan_action" value="except">
+                            Except (remove from existing)
+                        </label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Allowed VLANs</legend>
+                        <div id="vlanRows"></div>
+                        <button type="button" id="addVlanBtn"
+                                style="margin-top:10px; background:#27ae60; color:white;">
+                            + Add VLAN
+                        </button>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Native VLAN (optional)</legend>
+                        <label>Native VLAN ID:
+                            <input type="text" id="native_vlan" placeholder="e.g. 10 (leave blank to keep)">
+                        </label>
+                    </fieldset>
+
+                    <button type="button" id="saveTrunkBtn">Configure Trunk Port(s)</button>
+                    <button type="button" id="backToModeTrunk"
+                            style="background:#888; color:white; margin-top:8px;">
+                        &larr; Back to Mode Choice
+                    </button>
+                    <div id="saveStatusTrunk" class="status-line"></div>
+                </div>
+
+            </form>
+        </aside>
+    </main>
+
+<script>
+/* ============================================================
+   SHARED STATE
+   ============================================================ */
+let devices = [];                    // devices returned from api3.php
+const chosenDevices = new Set();     // selected device IDs (for API payload)
+const chosenInterfaces = [];         // [{ device_id, int_id, int_name }]
+
+/* ============================================================
+   1. LOAD DEVICES  (api3.php — same as interfaces)
+   ============================================================ */
+document.getElementById('loadDevicesBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const site     = document.getElementById('site').value.trim();
+    const type     = document.getElementById('device_type').value.trim();
+    const platform = document.getElementById('platform').value.trim();
+    const hostname = document.getElementById('hostname').value.trim();
+
+    if (!site || !type) {
+        alert('Site No and Device Type are required');
+        return;
+    }
+
+    const qs = new URLSearchParams({ site, type, platform, hostname }).toString();
+
+    let data;
+    try {
+        const res = await fetch('api3.php?' + qs, { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        data = await res.json();
+    } catch (err) {
+        alert('Failed to load devices: ' + err.message);
+        return;
+    }
+
+    if (data.status === 'error') { alert(data.message); return; }
+    if (data.status !== 'success') { alert('Unexpected response'); return; }
+
+    devices = data.message || [];
+    chosenDevices.clear();
+
+    const box = document.getElementById('devicesBox');
+    box.innerHTML = '';
+
+    if (devices.length === 0) {
+        box.innerHTML = '<em>No matching devices</em>';
+        document.getElementById('proceedBtn').disabled = true;
+        return;
+    }
+
+    devices.forEach(d => {
+        const wrap = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.innerHTML =
+            `<strong>Device ID:</strong> <span>${d.id}</span><br>
+             <label><input type="checkbox" class="dev-chk" data-dev="${d.id}"> ${d.name} (${d.type || ''})</label>`;
+        wrap.appendChild(legend);
+
+        // Per-interface checkboxes inside the device fieldset
+        const ifaceWrap = document.createElement('div');
+        ifaceWrap.className = 'iface-block';
+        ifaceWrap.innerHTML = '<em style="font-size:0.85rem;">No interfaces listed</em>';
+
+        // If api3.php returns interfaces per device, render them
+        if (Array.isArray(d.interfaces) && d.interfaces.length > 0) {
+            ifaceWrap.innerHTML = '';
+            d.interfaces.forEach(iface => {
+                const lbl = document.createElement('label');
+                lbl.innerHTML =
+                    `<input type="checkbox" class="if-chk"
+                            data-dev="${d.id}"
+                            data-int="${iface.int_id ?? iface.id ?? ''}"
+                            data-name="${iface.int_name ?? iface.name ?? ''}">
+                     ${iface.int_name ?? iface.name ?? 'interface'}`;
+                ifaceWrap.appendChild(lbl);
+            });
+        }
+        wrap.appendChild(ifaceWrap);
+
+        box.appendChild(wrap);
+    });
+
+    document.getElementById('proceedBtn').disabled = false;
+});
+
+/* ============================================================
+   2. TRACK DEVICE + INTERFACE CHECKBOXES
+   ============================================================ */
+document.getElementById('devicesBox').addEventListener('change', e => {
+    const t = e.target;
+
+    if (t.classList.contains('dev-chk')) {
+        const devId = t.dataset.dev;
+        if (t.checked) chosenDevices.add(devId);
+        else            chosenDevices.delete(devId);
+
+        // Toggle all child interface checkboxes to match
+        document.querySelectorAll(`.if-chk[data-dev="${devId}"]`).forEach(chk => {
+            chk.checked = t.checked;
+            syncInterfaceChoice(chk);
+        });
+    } else if (t.classList.contains('if-chk')) {
+        syncInterfaceChoice(t);
+        // Reflect into parent device checkbox
+        const devId = t.dataset.dev;
+        const anyChecked = document.querySelector(
+            `.if-chk[data-dev="${devId}"]:checked`
+        );
+        const devChk = document.querySelector(`.dev-chk[data-dev="${devId}"]`);
+        if (devChk) {
+            devChk.checked = !!anyChecked;
+            if (devChk.checked) chosenDevices.add(devId);
+            else                chosenDevices.delete(devId);
+        }
+    }
+});
+
+function syncInterfaceChoice(chk) {
+    const devId  = chk.dataset.dev;
+    const intId  = chk.dataset.int;
+    const intName = chk.dataset.name;
+
+    // Remove any existing entry for this (device, int)
+    const idx = chosenInterfaces.findIndex(
+        x => String(x.device_id) === String(devId) && String(x.int_id) === String(intId)
+    );
+    if (idx >= 0) chosenInterfaces.splice(idx, 1);
+
+    if (chk.checked && intId) {
+        chosenInterfaces.push({
+            device_id: devId,
+            int_id: intId,
+            int_name: intName
+        });
+    }
+}
+
+/* ============================================================
+   3. PROCEED → show mode choice
+   ============================================================ */
+document.getElementById('proceedBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+
+    if (chosenDevices.size === 0 || chosenInterfaces.length === 0) {
+        alert('Choose at least one device and one interface! 👾👾');
+        return;
+    }
+
+    document.getElementById('picker').style.display      = 'none';
+    document.getElementById('modeChoice').style.display  = 'block';
+    document.getElementById('accessForm').style.display  = 'none';
+    document.getElementById('trunkForm').style.display   = 'none';
+});
+
+/* ============================================================
+   4. MODE BUTTONS → show access or trunk form
+   ============================================================ */
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const mode = btn.dataset.mode;
+
+        document.getElementById('modeChoice').style.display = 'none';
+
+        if (mode === 'access') {
+            document.getElementById('accessForm').style.display = 'block';
+            document.getElementById('trunkForm').style.display  = 'none';
+        } else {
+            document.getElementById('trunkForm').style.display  = 'block';
+            document.getElementById('accessForm').style.display = 'none';
+
+            // Seed one VLAN row on first show
+            const rows = document.getElementById('vlanRows');
+            if (rows.children.length === 0) createVlanRow();
+        }
+    });
+});
+
+/* ============================================================
+   5. BACK BUTTONS
+   ============================================================ */
+document.getElementById('backToPickerBtn1').addEventListener('click', () => {
+    document.getElementById('modeChoice').style.display = 'none';
+    document.getElementById('picker').style.display     = 'block';
+});
+
+document.getElementById('backToModeAccess').addEventListener('click', () => {
+    document.getElementById('accessForm').style.display = 'none';
+    document.getElementById('modeChoice').style.display = 'block';
+});
+
+document.getElementById('backToModeTrunk').addEventListener('click', () => {
+    document.getElementById('trunkForm').style.display  = 'none';
+    document.getElementById('modeChoice').style.display = 'block';
+});
+
+/* ============================================================
+   6. TRUNK — dynamic VLAN rows
+   ============================================================ */
+function createVlanRow(id = '') {
+    const container = document.getElementById('vlanRows');
+    const row = document.createElement('div');
+    row.className = 'vlan-row';
+
+    const inputStyle = 'flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;';
+
+    row.innerHTML = `
+        <input type="text" class="vlan-id" placeholder="vlan id (e.g. 10 or 30-40)"
+               value="${id}" style="${inputStyle}">
+        <button type="button" class="remove-vlan-btn"
+                style="background:#e74c3c; color:white; width:auto; padding:8px 12px;
+                       border-radius:5px; border:none; cursor:pointer;">✕</button>
+    `;
+    row.querySelector('.remove-vlan-btn').addEventListener('click', () => row.remove());
+    container.appendChild(row);
+}
+
+document.getElementById('addVlanBtn').addEventListener('click', () => {
+    createVlanRow();
+});
+
+/* ============================================================
+   7. SAVE — ACCESS
+   ============================================================ */
+document.getElementById('saveAccessBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const statusEl = document.getElementById('saveStatusAccess');
+    statusEl.textContent = '';
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    const accessVlan = document.getElementById('access_vlan').value.trim();
+    if (!accessVlan) { alert('Access VLAN is required'); return; }
+    if (isNaN(Number(accessVlan)) || Number(accessVlan) < 1 || Number(accessVlan) > 4094) {
+        alert('Access VLAN must be 1-4094');
+        return;
+    }
+
+    // Build devices[] grouped from chosenInterfaces
+    const grouped = groupInterfacesByDevice();
+
+    const payload = {
+        cred_id: Number(credId),
+        mode: 'access',
+        devices: grouped,
+        vlans: [{ id: String(accessVlan), name: '' }],
+        vlan_action: null,
+        native_vlan: null
+    };
+
+    await submitTrunkPayload(payload, document.getElementById('saveAccessBtn'),
+                             statusEl, 'Configure Access Port(s)');
+});
+
+/* ============================================================
+   8. SAVE — TRUNK
+   ============================================================ */
+document.getElementById('saveTrunkBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const statusEl = document.getElementById('saveStatusTrunk');
+    statusEl.textContent = '';
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    // Collect VLAN rows — id only (name optional, not needed for switchport)
+    const vlans = [];
+    let bad = null;
+    document.querySelectorAll('#vlanRows .vlan-row').forEach(row => {
+        const id = row.querySelector('.vlan-id').value.trim();
+        if (!id) return;                             // skip empty
+        vlans.push({ id, name: '' });
+    });
+
+    if (vlans.length === 0) { alert('Add at least one VLAN'); return; }
+
+    // vlan_action
+    const actionEl = document.querySelector('input[name="vlan_action"]:checked');
+    const vlanAction = actionEl ? actionEl.value : '';   // '' means blank → replace
+
+    // native vlan
+    const nativeVlan = document.getElementById('native_vlan').value.trim();
+    if (nativeVlan) {
+        if (isNaN(Number(nativeVlan)) || Number(nativeVlan) < 1 || Number(nativeVlan) > 4094) {
+            alert('Native VLAN must be 1-4094');
+            return;
+        }
+    }
+
+    // Blank action → confirm overwrite
+    if (!vlanAction) {
+        if (!confirm('No action selected — this will OVERWRITE the existing VLAN list on the selected ports. Continue?')) {
+            return;
+        }
+    }
+
+    const grouped = groupInterfacesByDevice();
+
+    const payload = {
+        cred_id: Number(credId),
+        mode: 'trunk',
+        devices: grouped,
+        vlans: vlans,
+        vlan_action: vlanAction || null,
+        native_vlan: nativeVlan || null
+    };
+
+    await submitTrunkPayload(payload, document.getElementById('saveTrunkBtn'),
+                             statusEl, 'Configure Trunk Port(s)');
+});
+
+/* ============================================================
+   Helper: group chosenInterfaces by device → [{id, ports:[...]}]
+   ============================================================ */
+function groupInterfacesByDevice() {
+    const map = new Map();
+    chosenInterfaces.forEach(ci => {
+        if (!map.has(ci.device_id)) map.set(ci.device_id, []);
+        map.get(ci.device_id).push({
+            int_id: Number(ci.int_id),
+            int_name: ci.int_name
+        });
+    });
+    return [...map.entries()].map(([device_id, ports]) => ({
+        id: device_id,
+        ports
+    }));
+}
+
+/* ============================================================
+   Shared POST + poll logic
+   ============================================================ */
+async function submitTrunkPayload(payload, btn, statusEl, idleLabel) {
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+    statusEl.textContent = 'Sending to backend…';
+
+    try {
+        const res = await fetch('api6.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log('[POST]', data);
+
+        if (data.status === 'error') {
+            statusEl.textContent = 'Rejected.';
+            alert('Rejected:\n' + (data.errors ? data.errors.join('\n') : data.message));
+            return;
+        }
+
+        const jobId = data.job_id;
+        statusEl.textContent = 'Waiting for devices… (job ' + jobId + ')';
+        btn.textContent = 'Waiting…';
+
+        const started = Date.now();
+        const POLL_MS = 5000;
+        const MAX_MS  = 30 * 60 * 1000;   // 30 min
+
+        while (Date.now() - started < MAX_MS) {
+            await new Promise(r => setTimeout(r, POLL_MS));
+
+            let poll;
+            try {
+                const pr = await fetch('api6.php?job=' + encodeURIComponent(jobId));
+                poll = await pr.json();
+            } catch (err) {
+                statusEl.textContent = 'Poll network error, retrying…';
+                continue;
+            }
+            console.log('[poll]', poll);
+
+            if (poll.status === 'pending') {
+                statusEl.textContent = 'Still configuring… (' + Math.round((Date.now()-started)/1000) + 's)';
+                continue;
+            }
+            if (poll.status === 'error') {
+                statusEl.textContent = 'Failed.';
+                alert('Configuration failed: ' + poll.message);
+                return;
+            }
+            if (poll.status === 'success') {
+                statusEl.textContent = 'Done.';
+                alert('All configured ✔');
+                resetAll();
+                loadTrunks();
+                return;
+            }
+        }
+        statusEl.textContent = 'Timed out.';
+        alert('Timed out waiting for job ' + jobId + '\n\nThe job is still running in the background. Refresh the list in a few minutes.');
+    } catch (err) {
+        statusEl.textContent = 'Error.';
+        alert('Save error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = idleLabel;
+    }
+}
+
+/* ============================================================
+   9. RESET UI
+   ============================================================ */
+function resetAll() {
+    document.getElementById('picker').style.display      = 'block';
+    document.getElementById('modeChoice').style.display  = 'none';
+    document.getElementById('accessForm').style.display  = 'none';
+    document.getElementById('trunkForm').style.display   = 'none';
+
+    document.getElementById('devicesBox').innerHTML    = '';
+    document.getElementById('vlanRows').innerHTML      = '';
+    document.getElementById('access_vlan').value       = '';
+    document.getElementById('native_vlan').value       = '';
+    document.getElementById('saveStatusAccess').textContent = '';
+    document.getElementById('saveStatusTrunk').textContent  = '';
+
+    chosenDevices.clear();
+    chosenInterfaces.length = 0;
+    document.getElementById('proceedBtn').disabled = true;
+}
+
+/* ============================================================
+   10. LEFT PANEL — list configured trunks/access
+   ============================================================ */
+const trunksList = document.getElementById('trunks');
+
+async function loadTrunks() {
+    try {
+        const res = await fetch('api6.php', { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        const data = await res.json();
+
+        if (data.status === 'error') throw new Error(data.message);
+
+        trunksList.innerHTML = '';
+
+        (data.devices || []).forEach(activeDev => {
+            const li = document.createElement('li');
+            li.className = 'trunks-list';
+            li.style.cssText =
+                'list-style:none; margin-bottom:15px; padding:10px;' +
+                'background:rgba(255,255,255,0.05); border-radius:5px;';
+
+            let html = `
+                <div style="margin-bottom:8px;">
+                    <strong>Device ID:</strong> <span>${activeDev.device_id}</span><br>
+                    <strong>Hostname:</strong>  <span>${activeDev.hostname || '—'}</span><br>
+            `;
+
+            (activeDev.ports || []).forEach(p => {
+                html += `
+                    <hr style="margin:6px 0; border:0; border-top:1px dashed rgba(255,255,255,0.2);">
+                    <strong>interface: </strong> <span>${p.int_name || '—'}</span><br>
+                    <strong>mode: </strong>      <span>${p.mode || '—'}</span><br>
+                    <strong>vlans: </strong>     <span>${p.vlan_ids || '—'}</span><br>
+                    <strong>native: </strong>    <span>${p.native_vlan || '—'}</span><br>
+                `;
+            });
+
+            html += `</div>`;
+            li.innerHTML = html;
+            trunksList.appendChild(li);
+        });
+
+    } catch (err) {
+        console.error('Trunks load error:', err.message);
+    }
+}
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+loadTrunks();
+setInterval(loadTrunks, 15000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHARNAM Interfaces</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)),
+                              url('sharnam.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        header {
+            background-color: #003366;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 10px;
+            border-radius: 15px;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            margin: 0 10px 10px 10px;
+            gap: 10px;
+        }
+
+        .interfaces-available {
+            flex: 1;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .add-interface-panel {
+            flex: 1;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 5px;
+        }
+
+        fieldset {
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        legend {
+            padding: 0 10px;
+            font-weight: bold;
+            color: #00e5ff;
+            font-size: 0.9rem;
+        }
+
+        fieldset label {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        fieldset input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgba(255,255,255,0.9);
+            color: #333;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border: 2px solid #00e5ff;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            background-color: #00e5ff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover:not(:disabled) { background-color: #ffffff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .status-line {
+            font-size: 0.85rem;
+            color: #00e5ff;
+            margin-top: 8px;
+            min-height: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SHARNAM-NetTool: Interfaces</h1>
+    </header>
+
+    <main>
+        <section class="interfaces-available">
+            <h2>Available Interfaces</h2>
+            <ul id="interfaces" class="interfaces"></ul>
+        </section>
+
+        <aside class="add-interface-panel">
+            <h2>Add Interface</h2>
+
+            <form id="add-interface-form" method="post" action="">
+
+                <!-- ============ STEP 1: PICKER ============ -->
+                <div id="picker">
+                    <label>Profile (cred_id):
+                        <input type="text" id="cred_id" placeholder="e.g. 3" required>
+                    </label>
+                    <label>Site No:
+                        <input type="text" id="site" placeholder="e.g. site_001" required>
+                    </label>
+                    <label>Device Type:
+                        <input type="text" id="device_type" placeholder="e.g. switch or router" required>
+                    </label>
+                    <label>Platform:
+                        <input type="text" id="platform" placeholder="e.g. CISCO-IOS-XE">
+                    </label>
+                    <label>Hostname:
+                        <input type="text" id="hostname" placeholder="e.g. NRB-RT-001">
+                    </label>
+
+                    <button type="button" id="loadDevicesBtn">Load Devices</button>
+
+                    <div id="devicesBox"></div>
+
+                    <button type="button" id="proceedBtn" disabled>Proceed To Creating &rarr;</button>
+                </div>
+
+                <!-- ============ STEP 2: FILL ============ -->
+                <div id="fillSet" style="display:none">
+                    <fieldset>
+                        <legend>Interface Type</legend>
+                        <label><input type="radio" name="mode" value="physical" checked> Physical</label>
+                        <label><input type="radio" name="mode" value="svi"> SVI</label>
+                        <label><input type="radio" name="mode" value="tunnel"> Tunnel</label>
+						<label><input type="radio" name="mode" value="loopback"> LOOPBACK</label>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>Add Interfaces to Create</legend>
+                        <div id="interfaceRows"></div>
+                        <button type="button" id="addInterfaceBtn"
+                                style="margin-top:10px; background:#27ae60; color:white;">
+                            + Add Interface
+                        </button>
+                    </fieldset>
+
+                    <button type="button" id="saveBtn">Configure Interface(s)</button>
+                    <div id="saveStatus" class="status-line"></div>
+                </div>
+
+            </form>
+        </aside>
+    </main>
+
+<script>
+/* ============================================================
+   SHARED STATE
+   ============================================================ */
+let devices = [];
+const chosenDevices = new Set();
+
+/* ============================================================
+   1. LOAD DEVICES  (api3.php)
+   ============================================================ */
+document.getElementById('loadDevicesBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const site     = document.getElementById('site').value.trim();
+    const type     = document.getElementById('device_type').value.trim();
+    const platform = document.getElementById('platform').value.trim();
+    const hostname = document.getElementById('hostname').value.trim();
+
+    if (!site || !type) {
+        alert('Site No and Device Type are required');
+        return;
+    }
+
+    const qs = new URLSearchParams({ site, type, platform, hostname }).toString();
+
+    let data;
+    try {
+        const res = await fetch('api3.php?' + qs, { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        data = await res.json();
+    } catch (err) {
+        alert('Failed to load devices: ' + err.message);
+        return;
+    }
+
+    if (data.status === 'error') { alert(data.message); return; }
+    if (data.status !== 'success') { alert('Unexpected response'); return; }
+
+    devices = data.message || [];
+    chosenDevices.clear();
+
+    const box = document.getElementById('devicesBox');
+    box.innerHTML = '';
+
+    if (devices.length === 0) {
+        box.innerHTML = '<em>No matching devices</em>';
+        document.getElementById('proceedBtn').disabled = true;
+        return;
+    }
+
+    devices.forEach(d => {
+        const wrap = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.innerHTML =
+            `<strong>Device ID:</strong> <span>${d.id}</span><br>
+             <label><input type="checkbox" class="dev-chk" data-dev="${d.id}"> ${d.name} (${d.type || ''})</label>`;
+        wrap.appendChild(legend);
+        box.appendChild(wrap);
+    });
+
+    document.getElementById('proceedBtn').disabled = false;
+});
+
+/* ============================================================
+   2. TRACK DEVICE CHECKBOXES
+   ============================================================ */
+document.getElementById('devicesBox').addEventListener('change', e => {
+    const t = e.target;
+    if (!t.classList.contains('dev-chk')) return;
+    const devId = t.dataset.dev;
+    if (t.checked) chosenDevices.add(devId);
+    else            chosenDevices.delete(devId);
+});
+
+/* ============================================================
+   3. PROCEED
+   ============================================================ */
+document.getElementById('proceedBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (chosenDevices.size === 0) {
+        alert('Choose at least one device! 👾👾');
+        return;
+    }
+
+    document.getElementById('picker').style.display  = 'none';
+    document.getElementById('fillSet').style.display = 'block';
+
+    const rows = document.getElementById('interfaceRows');
+    rows.innerHTML = '';
+    createInterfaceRow();
+});
+
+/* ============================================================
+   4. DYNAMIC INTERFACE ROWS — 4 fields: name, ip, netmask, desc
+   ============================================================ */
+function createInterfaceRow(name = '', ip = '', netmask = '', desc = '') {
+    const container = document.getElementById('interfaceRows');
+    const row = document.createElement('div');
+    row.className = 'int-row';
+    row.style.cssText = 'display:flex; gap:8px; margin-bottom:8px; align-items:center;';
+
+    const inputStyle = 'flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;';
+
+    row.innerHTML = `
+        <input type="text" class="int-name" placeholder="name (e.g. vlan666)"
+               value="${name}" style="${inputStyle}">
+        <input type="text" class="int-ip" placeholder="ip (e.g. 192.168.10.254)"
+               value="${ip}" style="${inputStyle}">
+        <input type="text" class="int-netmask" placeholder="netmask (e.g. 255.255.255.0)"
+               value="${netmask}" style="${inputStyle}">
+        <input type="text" class="int-desc" placeholder="description"
+               value="${desc}" style="flex:1.5; padding:8px; border-radius:5px; border:1px solid #ccc; color:#333; margin-bottom:0;">
+        <button type="button" class="remove-int-btn"
+                style="background:#e74c3c; color:white; width:auto; padding:8px 12px;
+                       border-radius:5px; border:none; cursor:pointer;">✕</button>
+    `;
+    row.querySelector('.remove-int-btn').addEventListener('click', () => row.remove());
+    container.appendChild(row);
+}
+
+document.getElementById('addInterfaceBtn').addEventListener('click', () => {
+    createInterfaceRow();
+});
+
+/* ============================================================
+   5. SAVE (POST → maybe poll)
+   ============================================================ */
+document.getElementById('saveBtn').addEventListener('click', async (e) => {
+    e.preventDefault();
+
+    const statusEl = document.getElementById('saveStatus');
+    statusEl.textContent = '';
+
+    const modeEl = document.querySelector('input[name="mode"]:checked');
+    const mode   = modeEl ? modeEl.value : null;
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required'); return; }
+
+    // Collect interface rows — 4 fields: name, ip, netmask, desc
+    const ints = [];
+    let bad = null;
+    document.querySelectorAll('#interfaceRows .int-row').forEach(row => {
+        const name    = row.querySelector('.int-name').value.trim();
+        const ip      = row.querySelector('.int-ip').value.trim();
+        const netmask = row.querySelector('.int-netmask').value.trim();
+        const desc    = row.querySelector('.int-desc').value.trim();
+
+        // Skip wholly-empty rows
+        if (!name && !ip && !netmask && !desc) return;
+
+        // Name is required
+        if (!name) { bad = row; return; }
+
+        ints.push({ name, ip, netmask, desc });
+    });
+
+    if (bad) { alert('Each interface needs a name'); bad.querySelector('.int-name').focus(); return; }
+    if (ints.length === 0) { alert('Add at least one interface first'); return; }
+    if (chosenDevices.size === 0) { alert('No devices selected'); return; }
+
+    // Build payload
+    const devicesArr = [];
+    for (const devId of chosenDevices) {
+        const dev = devices.find(d => String(d.id) === String(devId));
+        if (!dev) { alert('Could not resolve device: ' + devId); return; }
+        devicesArr.push({ id: dev.id, mode: mode, interfaces: ints });
+    }
+    const payload = { cred_id: Number(credId), devices: devicesArr };
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+    statusEl.textContent = 'Sending to backend…';
+
+    try {
+        // ---------- POST ----------
+        const res  = await fetch('api4.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        console.log('[POST]', data);
+
+        if (data.status === 'error') {
+            statusEl.textContent = 'Rejected.';
+            alert('Rejected:\n' + (data.errors ? data.errors.join('\n') : data.message));
+            return;
+        }
+
+        // All-physical — done immediately, no job
+        if (!data.job_id) {
+            statusEl.textContent = 'Done.';
+            alert(`Configured ${data.inserted || 0} interface(s) ✔`);
+            resetForm();
+            loadInterfaces();
+            return;
+        }
+
+        // Remote — poll
+        const jobId = data.job_id;
+        statusEl.textContent = 'Waiting for devices… (job ' + jobId + ')';
+        btn.textContent = 'Waiting…';
+
+        const started = Date.now();
+        const POLL_MS = 2000;
+        const MAX_MS  = 5 * 60 * 1000;
+
+        while (Date.now() - started < MAX_MS) {
+            await new Promise(r => setTimeout(r, POLL_MS));
+
+            let poll;
+            try {
+                const pr = await fetch('api4.php?job=' + encodeURIComponent(jobId));
+                poll = await pr.json();
+            } catch (err) {
+                statusEl.textContent = 'Poll network error, retrying…';
+                continue;
+            }
+            console.log('[poll]', poll);
+
+            if (poll.status === 'pending') {
+                statusEl.textContent = 'Still configuring… (' + Math.round((Date.now()-started)/1000) + 's)';
+                continue;
+            }
+            if (poll.status === 'error') {
+                statusEl.textContent = 'Failed.';
+                alert('Configuration failed: ' + poll.message);
+                return;
+            }
+            if (poll.status === 'success') {
+                statusEl.textContent = 'Done.';
+                alert('All configured ✔');
+                resetForm();
+                loadInterfaces();
+                return;
+            }
+        }
+        statusEl.textContent = 'Timed out.';
+        alert('Timed out waiting for job ' + jobId);
+    } catch (err) {
+        statusEl.textContent = 'Error.';
+        alert('Save error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Configure Interface(s)';
+    }
+});
+
+function resetForm() {
+    document.getElementById('fillSet').style.display = 'none';
+    document.getElementById('picker').style.display  = 'block';
+    document.getElementById('devicesBox').innerHTML  = '';
+    document.getElementById('interfaceRows').innerHTML = '';
+    document.getElementById('saveStatus').textContent = '';
+    chosenDevices.clear();
+    document.getElementById('proceedBtn').disabled = true;
+}
+
+/* ============================================================
+   6. LEFT PANEL — list existing interfaces
+   ============================================================ */
+const interfacesList = document.getElementById('interfaces');
+
+async function loadInterfaces() {
+    try {
+        const res = await fetch('api4.php', { method: 'GET' });
+        if (!res.ok) throw new Error('Backend error');
+        const data = await res.json();
+
+        if (data.status === 'error') throw new Error(data.message);
+
+        interfacesList.innerHTML = '';
+
+        (data.devices || []).forEach(activeDev => {
+            const li = document.createElement('li');
+            li.className = 'interfaces-list';
+            li.style.cssText =
+                'list-style:none; margin-bottom:15px; padding:10px;' +
+                'background:rgba(255,255,255,0.05); border-radius:5px;';
+
+            let html = `
+                <div style="margin-bottom:8px;">
+                    <strong>Device ID:</strong> <span>${activeDev.device_id}</span><br>
+                    <strong>Hostname:</strong>  <span>${activeDev.hostname || '—'}</span><br>
+            `;
+
+            (activeDev.interfaces || []).forEach(ifc => {
+                html += `
+                    <hr style="margin:6px 0; border:0; border-top:1px dashed rgba(255,255,255,0.2);">
+                    <strong>interface_id: </strong>   <span>${ifc.int_id}</span><br>
+                    <strong>interface_name: </strong> <span>${ifc.interface_name}</span><br>
+                    <strong>interface_type: </strong> <span>${ifc.interface_type}</span><br>
+					<strong>IP: :</strong> <span>${ifc.ip}</span><br>
+					<strong>Netmask: </strong> <span>${ifc.netmask}</span><br>
+                    <strong>vrf_name: </strong>       <span>${ifc.vrf_name || '—'}</span><br>
+                    <strong>status: </strong>         <span>${ifc.status || '—'}</span><br>
+                    <strong>description: </strong>    <span>${ifc.description || '—'}</span><br>
+                    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+                        <button class="btn-delete"
+                                data-int="${ifc.int_id}"
+                                data-host="${activeDev.hostname || ''}"
+                                data-name="${ifc.interface_name}"
+                                style="background:#e74c3c; color:white; padding:4px 10px;
+                                       font-size:12px; width:auto; margin:0; border:none;
+                                       border-radius:3px; cursor:pointer;">Remove</button>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            li.innerHTML = html;
+            interfacesList.appendChild(li);
+        });
+
+        // Fresh event listeners on the freshly-rendered buttons
+        interfacesList.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', onDeleteClick);
+        });
+
+    } catch (err) {
+        console.error('Interface load error:', err.message);
+    }
+}
+
+/* ============================================================
+   7. DELETE click handler
+   ============================================================ */
+async function onDeleteClick(ev) {
+    const btn    = ev.currentTarget;
+    const intId  = btn.dataset.int;
+    const host   = btn.dataset.host;
+    const ifName = btn.dataset.name;
+
+    if (!confirm(`Remove interface ${ifName} from ${host}?`)) return;
+
+    const credId = document.getElementById('cred_id').value.trim();
+    if (!credId) { alert('cred_id is required for delete'); return; }
+
+    try {
+        const del = await fetch('api4.php', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ int: intId, cred_id: Number(credId) })
+        });
+        const delRes = await del.json();
+        console.log('[DELETE]', delRes);
+        if (delRes.status === 'error') throw new Error(delRes.message);
+        alert('Interface deleted ✔');
+        loadInterfaces();
+    } catch (err) {
+        alert('Deletion error: ' + err.message);
+    }
+}
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+loadInterfaces();
+setInterval(loadInterfaces, 15000);
+</script>
+
+</body>
+</html>
