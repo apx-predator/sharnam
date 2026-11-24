@@ -4,7 +4,7 @@ A Model-Driven Network Automation Platform (YANG / NETCONF / FastAPI / PHP)
 Sharnam is a full-stack network orchestration and provisioning demo designed to showcase modern network automation principles. Instead of relying on legacy CLI screen-scraping, it uses YANG data models over NETCONF to manage network devices programmatically, ensuring transactional integrity and structured configuration.
 
 🚀 Core Features
-Model-Driven Programmability: Utilizes Cisco IOS-XE YANG models to push configurations (VLANs, Interfaces, BGP, Port-Channels, etc.) via NETCONF.
+Model-Driven Programmability: Utilizes Cisco IOS-XE YANG models to push configurations (VLANs, Interfaces, interfaces features, Port-Channels, etc.) via NETCONF.
 
 Two-Phase Commit (Confirmed-Commit): Implements a safety-net mechanism using <commit><confirmed/>. If a configuration change causes a lockout or failure, it automatically rolls back unless explicitly confirmed, ensuring zero network downtime.
 
